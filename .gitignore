@@ -1,0 +1,4 @@
+*
+!*.org
+!*.org_archive
+!.gitignore

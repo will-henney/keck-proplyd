@@ -1,0 +1,805 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file /Users/will/Dropbox/KeckProplyd/keck-revisited.org
+
+
+* Automatic using MAKEE?
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2013-02-21 Thu 13:20
+  :ARCHIVE_FILE: ~/Dropbox/KeckProplyd/keck-revisited.org
+  :ARCHIVE_OLPATH: Keck proplyd spectra revisited/Reduction Strategy
+  :ARCHIVE_CATEGORY: keck-revisited
+  :END:
+
++ See http://www2.keck.hawaii.edu/inst/hires/hires.html
++ This will be quick and easy (I hope), but may not be good enough for resolved sources
++ It will give us at least an idea of what lines are there
+
+
+** Download and compile Makee
+     :LOGBOOK:
+     CLOCK: [2012-05-10 Thu 09:30]--[2012-05-10 Thu 10:30] =>  1:00
+     :END:
+
+That was not easy on my mac - required lots of little fixes to legacy non-standard fortran.  
+
+Still, all done now - it is in [[file:~/Source/makee_5.2.4-sep08/]], which is a git repo.  
+
+Not so fast.  It turns out to be impossible to get the version that I compiled.  There are some bizarre problems with the strings.  
+
+** Test running Makee
+#+BEGIN_SRC sh :results output
+cd Makee-test
+export MAKEE_DIR=~/Source/makee_5.2.4-sep08
+export PATH=$PATH:$MAKEE_DIR/bin
+export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:/usr/local/pgplot
+export PGPLOT_DIR=/usr/local/pgplot
+echo Last run: $(date)
+echo Current directory: $(pwd)
+echo Path to makee: $(which makee)
+LOGFILE=test-$(date "+%F-%H%M").log
+OBJ_FILE=../Keck2/p59.fits
+STAR_FILE=$OBJ_FILE
+FLAT_FILE=../Keck1/q110.fits
+ARC_FILE=../Keck2/t55.fits
+makee $OBJ_FILE $STAR_FILE $FLAT_FILE $ARC_FILE log=$LOGFILE
+#+END_SRC
+
+#+RESULTS:
+
+** Fixing the BITPIX=-16 files
+
+Some files, notably q10.fits have =BITPIX = -16=, which is a non-standard datatype of unsigned 16-bit integer.
+
+#+BEGIN_SRC python :results output
+import pyfits
+f = pyfits.open("Keck1/q10.fits")
+print f.info()
+#+END_SRC 
+
+#+RESULTS:
+
+
+* Old versions of CR scripts
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2013-04-19 Fri 08:17
+  :ARCHIVE_FILE: ~/Dropbox/KeckProplyd/keck-revisited.org
+  :ARCHIVE_OLPATH: Keck proplyd spectra revisited/Reduction Strategy/Remove cosmic rays/Removing CRs from the images
+  :ARCHIVE_CATEGORY: keck-revisited
+  :END:
+#+name: spotless-common
+#+BEGIN_SRC sh
+  COMMON_PARS="--output-id cr --multi-hdu --verbose --debug \
+      --edge-pars 1.0 0.001 0.01 \
+      --allow-shadows --dmax 7"
+  SPOTLESS="python $HOME/Work/HST-STIS/spotless/spotless.py"
+  
+#+END_SRC
+
+** CANCELED Try again with p84
+      CLOSED: [2013-03-16 Sat 08:42]
+      :LOGBOOK:
+      - State "CANCELED"   from ""           [2013-03-16 Sat 08:42] \\
+	Turns out that the CR algorithm does not work very well on the interpolated images.   So it seems that the only way to proceed is to remove the CRs from the big array first
+      :END:
++ Do this all again now that we have got the rectification right. 
++ We use the "s" versions that have had the stray light removed
+
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  OBJ=p84
+  for i in $(seq -w 51 51); do
+      $SPOTLESS ${OBJ}b-order${i} $COMMON_PARS --data-range 10 200 --threshold 200.0 \
+          --include-regions-from-file ${OBJ}-order${i}-badpix.reg \
+          --exclude-regions-from-file ${OBJ}-order${i}-protect.reg
+  done
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Finding bad pixels by the 'edge' method
+Data scaled to range [1.00e+01, 2.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 2.00e+02
+            also added to bad pixels
+Warning: Eclude file p84-order51-protect.reg not found
+Warning: Include file p84-order51-badpix.reg not found
+Number of bad pixels: 1358 (1.263% of total)
+Number of distinct bad pixel objects found: 54
+Number of objects skipped:  1
+Replacement of bad pixels complete
+WARNING: Overwriting existing file 'p84b-order51-cr.fits'. [astropy.io.fits.hdu.hdulist]
+astropy: WARNING: Overwriting existing file 'p84b-order51-cr.fits'.
+#+end_example
+
+
+
+** First slit - p84 244-440
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  $SPOTLESS p84b-order70 $COMMON_PARS --data-range 10 100 --threshold 100.0 
+#+END_SRC
+
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  $SPOTLESS p84b-order51 $COMMON_PARS --data-range 10 200 --threshold 200.0 
+#+END_SRC
+
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  $SPOTLESS p84b-order52 $COMMON_PARS --data-range 10 100 --threshold 100.0 
+#+END_SRC
+
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  $SPOTLESS p84b-order53 $COMMON_PARS --data-range 10 2500 --threshold 2500.0 --include-regions-from-file p84-order53-badpix.reg
+#+END_SRC
+
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  $SPOTLESS p84b-order54 $COMMON_PARS --data-range 5 300 --threshold 1000.0  --include-regions-from-file p84-order54-badpix.reg
+#+END_SRC
+
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  $SPOTLESS p84b-order55 $COMMON_PARS --data-range 5 100 --threshold 100.0  
+#+END_SRC
+
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  $SPOTLESS p84b-order56 $COMMON_PARS --data-range 5 100 --threshold 100.0  --include-regions-from-file p84-order56-badpix.reg --exclude-regions-from-file p84-order56-protect.reg
+#+END_SRC
+
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  $SPOTLESS p84b-order64 $COMMON_PARS --data-range 5 100 --threshold 100.0  --exclude-regions-from-file p84-order64-protect.reg
+#+END_SRC
+
+
++ [2013-02-23 Sat 11:06] Have to do these ones again because the wavelengths were messed up
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  for i in $(seq -w 61 63); do
+      $SPOTLESS p84b-order$i $COMMON_PARS --data-range 5 100 --threshold 100.0
+  done
+#+END_SRC
+
+
+#+RESULTS:
+#+begin_example
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 2042 (1.937% of total)
+Number of distinct bad pixel objects found: 134
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  0
+Replacement of bad pixels complete
+WARNING: Overwriting existing file 'p84b-order61-cr.fits'. [astropy.io.fits.hdu.hdulist]
+astropy: WARNING: Overwriting existing file 'p84b-order61-cr.fits'.
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 4286 (4.066% of total)
+Number of distinct bad pixel objects found: 146
+Number of objects skipped:  6
+Replacement of bad pixels complete
+WARNING: Overwriting existing file 'p84b-order62-cr.fits'. [astropy.io.fits.hdu.hdulist]
+astropy: WARNING: Overwriting existing file 'p84b-order62-cr.fits'.
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 7967 (7.558% of total)
+Number of distinct bad pixel objects found: 252
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  15
+Replacement of bad pixels complete
+WARNING: Overwriting existing file 'p84b-order63-cr.fits'. [astropy.io.fits.hdu.hdulist]
+astropy: WARNING: Overwriting existing file 'p84b-order63-cr.fits'.
+#+end_example
+
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  for i in $(seq -w 65 76); do
+      $SPOTLESS p84b-order$i $COMMON_PARS --data-range 5 100 --threshold 100.0
+  done
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 4221 (4.084% of total)
+Number of distinct bad pixel objects found: 119
+Number of objects skipped:  4
+Replacement of bad pixels complete
+WARNING: Overwriting existing file 'p84b-order65-cr.fits'. [astropy.io.fits.hdu.hdulist]
+astropy: WARNING: Overwriting existing file 'p84b-order65-cr.fits'.
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 4932 (4.772% of total)
+Number of distinct bad pixel objects found: 121
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  3
+Replacement of bad pixels complete
+WARNING: Overwriting existing file 'p84b-order66-cr.fits'. [astropy.io.fits.hdu.hdulist]
+astropy: WARNING: Overwriting existing file 'p84b-order66-cr.fits'.
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 4234 (4.097% of total)
+Number of distinct bad pixel objects found: 106
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  1
+Replacement of bad pixels complete
+WARNING: Overwriting existing file 'p84b-order67-cr.fits'. [astropy.io.fits.hdu.hdulist]
+astropy: WARNING: Overwriting existing file 'p84b-order67-cr.fits'.
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 1991 (1.926% of total)
+Number of distinct bad pixel objects found: 110
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  2
+Replacement of bad pixels complete
+WARNING: Overwriting existing file 'p84b-order68-cr.fits'. [astropy.io.fits.hdu.hdulist]
+astropy: WARNING: Overwriting existing file 'p84b-order68-cr.fits'.
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 2658 (2.572% of total)
+Number of distinct bad pixel objects found: 107
+Number of objects skipped:  4
+Replacement of bad pixels complete
+WARNING: Overwriting existing file 'p84b-order69-cr.fits'. [astropy.io.fits.hdu.hdulist]
+astropy: WARNING: Overwriting existing file 'p84b-order69-cr.fits'.
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 2397 (2.319% of total)
+Number of distinct bad pixel objects found: 95
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  5
+Replacement of bad pixels complete
+WARNING: Overwriting existing file 'p84b-order70-cr.fits'. [astropy.io.fits.hdu.hdulist]
+astropy: WARNING: Overwriting existing file 'p84b-order70-cr.fits'.
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 3968 (3.839% of total)
+Number of distinct bad pixel objects found: 105
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  4
+Replacement of bad pixels complete
+WARNING: Overwriting existing file 'p84b-order71-cr.fits'. [astropy.io.fits.hdu.hdulist]
+astropy: WARNING: Overwriting existing file 'p84b-order71-cr.fits'.
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 4360 (4.219% of total)
+Number of distinct bad pixel objects found: 90
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  6
+Replacement of bad pixels complete
+WARNING: Overwriting existing file 'p84b-order72-cr.fits'. [astropy.io.fits.hdu.hdulist]
+astropy: WARNING: Overwriting existing file 'p84b-order72-cr.fits'.
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 4061 (3.929% of total)
+Number of distinct bad pixel objects found: 96
+Number of objects skipped:  4
+Replacement of bad pixels complete
+WARNING: Overwriting existing file 'p84b-order73-cr.fits'. [astropy.io.fits.hdu.hdulist]
+astropy: WARNING: Overwriting existing file 'p84b-order73-cr.fits'.
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 4244 (4.106% of total)
+Number of distinct bad pixel objects found: 178
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  4
+Replacement of bad pixels complete
+WARNING: Overwriting existing file 'p84b-order74-cr.fits'. [astropy.io.fits.hdu.hdulist]
+astropy: WARNING: Overwriting existing file 'p84b-order74-cr.fits'.
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 9520 (9.211% of total)
+Number of distinct bad pixel objects found: 285
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  25
+Replacement of bad pixels complete
+WARNING: Overwriting existing file 'p84b-order75-cr.fits'. [astropy.io.fits.hdu.hdulist]
+astropy: WARNING: Overwriting existing file 'p84b-order75-cr.fits'.
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 18135 (17.203% of total)
+Number of distinct bad pixel objects found: 443
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  50
+Replacement of bad pixels complete
+WARNING: Overwriting existing file 'p84b-order76-cr.fits'. [astropy.io.fits.hdu.hdulist]
+astropy: WARNING: Overwriting existing file 'p84b-order76-cr.fits'.
+#+end_example
+
+      
+
+** Second slit - p73 170-334
+
++ First just try to do all the orders in the same way. 
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  for i in $(seq -w 51 76); do
+      $SPOTLESS p73b-order$i $COMMON_PARS --data-range 5 100 --threshold 100.0
+  done
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 1580 (1.778% of total)
+Number of distinct bad pixel objects found: 86
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  2
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 2464 (2.433% of total)
+Number of distinct bad pixel objects found: 105
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  3
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 27482 (27.134% of total)
+Number of distinct bad pixel objects found: 78
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  2
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 9848 (9.723% of total)
+Number of distinct bad pixel objects found: 145
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  4
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 1400 (1.382% of total)
+Number of distinct bad pixel objects found: 109
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  0
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 3687 (3.640% of total)
+Number of distinct bad pixel objects found: 150
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  5
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 2193 (2.122% of total)
+Number of distinct bad pixel objects found: 146
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  0
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 2192 (2.121% of total)
+Number of distinct bad pixel objects found: 130
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  0
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 2151 (2.081% of total)
+Number of distinct bad pixel objects found: 131
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  0
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 3348 (3.239% of total)
+Number of distinct bad pixel objects found: 132
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  3
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 4011 (3.805% of total)
+Number of distinct bad pixel objects found: 177
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  3
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 5076 (4.815% of total)
+Number of distinct bad pixel objects found: 202
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  7
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 7077 (6.713% of total)
+Number of distinct bad pixel objects found: 215
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  8
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 6878 (6.525% of total)
+Number of distinct bad pixel objects found: 203
+Number of objects skipped:  11
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 3970 (3.841% of total)
+Number of distinct bad pixel objects found: 170
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  4
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 3142 (3.040% of total)
+Number of distinct bad pixel objects found: 174
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  3
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 2966 (2.870% of total)
+Number of distinct bad pixel objects found: 173
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  2
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 3836 (3.712% of total)
+Number of distinct bad pixel objects found: 194
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  3
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 2971 (2.875% of total)
+Number of distinct bad pixel objects found: 170
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  3
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 4237 (4.100% of total)
+Number of distinct bad pixel objects found: 159
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  6
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 8661 (8.380% of total)
+Number of distinct bad pixel objects found: 149
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  6
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 7816 (7.563% of total)
+Number of distinct bad pixel objects found: 149
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  8
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 5483 (5.305% of total)
+Number of distinct bad pixel objects found: 147
+Number of objects skipped:  5
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 4552 (4.404% of total)
+Number of distinct bad pixel objects found: 210
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  4
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 8013 (7.753% of total)
+Number of distinct bad pixel objects found: 283
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  15
+Replacement of bad pixels complete
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 14897 (14.131% of total)
+Number of distinct bad pixel objects found: 413
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  35
+Replacement of bad pixels complete
+#+end_example
+
++ Then finesse the ones that didn't quite work out
+
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  $SPOTLESS p73b-order53 $COMMON_PARS --data-range 5 300 --threshold 300.0 --exclude-regions-from-file p73-order53-protect.reg --include-regions-from-file p73-order53-badpix.reg
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 3.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 3.00e+02 also added to bad pixels
+Regions from p73-order53-protect.reg removed from bad pixels
+Regions from p73-order53-badpix.reg added to bad pixels
+Number of bad pixels: 3067 (3.028% of total)
+Number of distinct bad pixel objects found: 101
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  3
+Replacement of bad pixels complete
+WARNING: Overwriting existing file 'p73b-order53-cr.fits'. [astropy.io.fits.hdu.hdulist]
+astropy: WARNING: Overwriting existing file 'p73b-order53-cr.fits'.
+#+end_example
+
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  $SPOTLESS p73b-order54 $COMMON_PARS --data-range 5 300 --threshold 300.0 
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 3.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 3.00e+02 also added to bad pixels
+Number of bad pixels: 6015 (5.939% of total)
+Number of distinct bad pixel objects found: 101
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  3
+Replacement of bad pixels complete
+WARNING: Overwriting existing file 'p73b-order54-cr.fits'. [astropy.io.fits.hdu.hdulist]
+astropy: WARNING: Overwriting existing file 'p73b-order54-cr.fits'.
+#+end_example
+
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  $SPOTLESS p73b-order56 $COMMON_PARS --data-range 5 300 --threshold 300.0 --exclude-regions-from-file p73-order56-protect.reg 
+#+END_SRC
+
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  $SPOTLESS p73b-order59 $COMMON_PARS --data-range 5 300 --threshold 300.0 --exclude-regions-from-file p73-order59-protect.reg 
+#+END_SRC
+
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  $SPOTLESS p73b-order60 $COMMON_PARS --data-range 5 300 --threshold 300.0 --exclude-regions-from-file p73-order60-protect.reg 
+#+END_SRC
+
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  $SPOTLESS p73b-order61 $COMMON_PARS --data-range 5 60 --threshold 60
+#+END_SRC
+
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  $SPOTLESS p73b-order64 $COMMON_PARS --data-range 5 300 --threshold 300 --exclude-regions-from-file p73-order64-protect.reg 
+#+END_SRC
+
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  $SPOTLESS p73b-order67 $COMMON_PARS --data-range 5 300 --threshold 300 --exclude-regions-from-file p73-order67-protect.reg 
+#+END_SRC
+
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  $SPOTLESS p73b-order68 $COMMON_PARS --data-range 5 100 --threshold 100 --exclude-regions-from-file p73-order68-protect.reg 
+#+END_SRC
+
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  $SPOTLESS p73b-order71 $COMMON_PARS --data-range 5 100 --threshold 100 --exclude-regions-from-file p73-order71-protect.reg  --include-regions-from-file p73-order71-badpix.reg 
+#+END_SRC
+
+#+BEGIN_SRC sh :noweb yes :results verbatim 
+  <<spotless-common>>
+  $SPOTLESS p73b-order73 $COMMON_PARS --data-range 5 100 --threshold 100 --exclude-regions-from-file p73-order73-protect.reg 
+#+END_SRC
+#+RESULTS:
+#+begin_example
+Finding bad pixels by the 'edge' method
+Data scaled to range [5.00e+00, 1.00e+02]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Regions from p73-order73-protect.reg removed from bad pixels
+Number of bad pixels: 5359 (5.185% of total)
+Number of distinct bad pixel objects found: 146
+Number of objects skipped:  5
+Replacement of bad pixels complete
+WARNING: Overwriting existing file 'p73b-order73-cr.fits'. [astropy.io.fits.hdu.hdulist]
+astropy: WARNING: Overwriting existing file 'p73b-order73-cr.fits'.
+#+end_example
+
+
+** Initial experiments with removing CR from the entire image
+
+#+BEGIN_SRC sh :results verbatim
+    cd Keck1; python ~/Work/HST-STIS/spotless/spotless.py p84b \
+        --verbose \
+        --threshold 100.0 --data-range 0 3.e4 --edge-pars 1.0 0.001 0.01 \
+        --reject-filaments --allow-shadows --dmax 7
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Finding bad pixels by the 'edge' method
+Data scaled to range [0.00e+00, 3.00e+04]
+Edge detection with Canny method complete
+Filling of holes complete
+All values higher than 1.00e+02 also added to bad pixels
+Number of bad pixels: 20146 (0.854% of total)
+Number of distinct bad pixel objects found: 1106
+WARNING: RuntimeWarning: invalid value encountered in divide [numpy.core.fromnumeric]
+astropy: WARNING: RuntimeWarning: invalid value encountered in divide
+Number of objects skipped:  24
+Replacement of bad pixels complete
+#+end_example
+
+
+
+
