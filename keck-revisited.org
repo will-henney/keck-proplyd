@@ -55,27 +55,75 @@ CLOCK: [2013-04-18 Thu 10:51]--[2013-04-18 Thu 10:51] =>  0:00
 
 
 * Density diagnostics
+:LOGBOOK:
+CLOCK: [2013-04-26 Fri 11:45]--[2013-04-26 Fri 13:45] =>  2:00
+:END:
+:PROPERTIES:
+:EXPORT_FILE_NAME: density-diagnostics-244440
+:END:
 It is maybe a bit rash to do this before we have the flux calibration and flat field, but never mind.
 
 ** [S II] 
-** [Cl III] 
+** STARTED [Cl III] 
+:LOGBOOK:
+- State "STARTED"    from ""           [2013-04-26 Fri 15:15]
+:END:
 
++ The uncertainty given in the nebular ratios is rather large, since we are using the estimated uncertainties in the nebular component fits.
+  + However, I think these are really too large - we should maybe fit the sum of the nebula part. 
++ [ ] For slit p84 there seems to be a rogue CR removal that removed some of the proplyd signal from the 5518 line!
+  + [ ] Need to add it to the protect file and redo the CR removal
+  + But we can still measure the lower bit of the proplyd emission
+*** Flat fielding
+:LOGBOOK:
+CLOCK: [2013-04-26 Fri 17:26]--[2013-04-26 Fri 17:36] =>  0:10
+:END:
++ We need to to this properly, but for the moment just assume continuum is flat between 5518 and 5538
++ The observed continuum is given in the following table
++ So we need to divide the raw observed ratios by this number =0.68 +/- 0.03=
+| Slit         | 5518 continuum | 5538 continuum |         Ratio |
+|--------------+----------------+----------------+---------------|
+| p85 proplyd  |             13 |             19 |          0.68 |
+| p85 nebula   |              8 |             11 |          0.73 |
+| p85 neb-prop |              5 |              8 |          0.63 |
+|--------------+----------------+----------------+---------------|
+|              |                |                | 0.68 +/- 0.03 |
+#+TBLFM: $4=$2/$3 ; f2::@4$2..@4$3=@-2 - @-1::@5$4=vmeane(@I..@II); f2
+*** Theoretical [Cl III] 5518/5538 ratios
+Using the NIST data from [[id:059F129A-524D-4712-A4A7-72DD546A9842][here]], there are significant E2 and M1 contributions to the A-values.  
+|      Wav | A_{ki} (M1) | A_{ki} (E2) | J_{k}  | g_{k} = 2 J_{k} + 1 |     A_{ki} g_{k} |
+|----------+----------+----------+-----+---------------+------------|
+| 5517.709 | 1.46e-04 |  8.6e-04 | 5/2 |            6. |    0.00604 |
+| 5537.873 |  6.5e-03 |  5.5e-04 | 3/2 |            4. |    0.02820 |
+|----------+----------+----------+-----+---------------+------------|
+|          |          |          |     |           1.5 | 0.21418440 |
+#+TBLFM: $5=(2 $4) + 1::$6=($2 + $3) $5; f5::@4$5..@4$6=@2/@3
+So the limiting ratios are:
++ Low density :: 1.5
++ High density :: 0.214
 
-*** Slit p85 - nebular fit
-| Component      | I(5518)    | I(5538)    | log10(Ratio)     |
-|----------------+------------+------------+------------------|
-| A (main)       | 206 +/- 72 | 251 +/- 47 | -0.086 +/- 0.172 |
-| B (red, broad) | 93 +/- 129 | 128 +/- 88 | -0.139 +/- 0.672 |
-| C (blue)       | 93 +/- 26  | 121 +/- 37 | -0.114 +/- 0.180 |
-#+TBLFM: $4=log10($2/$3) ; 
-*** Slit p84 - nebular fit
-| Component      | I(5518)    | I(5538)    | log10(Ratio)     |
-|----------------+------------+------------+------------------|
-| A (main)       | 230 +/- 62 | 306 +/- 78 | -0.124 +/- 0.161 |
-| B (red, broad) | 71 +/- 122 | 209 +/- 96 | -0.469 +/- 0.772 |
-| C (blue)       | 157 +/- 32 | 169 +/- 18 | -0.032 +/- 0.100 |
-#+TBLFM: $4=log10($2/$3) ; f3
+Keenan et al ([[http://adsabs.harvard.edu/abs/2000PNAS...97.4551K][2000PNAS...97.4551K]]) have a useful paper that shows the line ratio as function of (n_{e}, T_{e}) 
 
+*** Measured [Cl III] 5518/5538 ratios
+In the following table, the ratio is flat-field corrected (see above). 
+| Slit | Component    | I(5518)    | I(5538)    | Corrected Ratio | log_{10} R        | Density |
+|------+--------------+------------+------------+-----------------+----------------+---------|
+| p85  | Neb A (main) | 206 +/- 72 | 251 +/- 47 | 1.207 +/- 0.482 | 0.08 +/- 0.17  |    1000 |
+| p85  | Neb C (blue) | 93 +/- 26  | 121 +/- 37 | 1.130 +/- 0.471 | 0.05 +/- 0.18  |    1000 |
+| p85  | Proplyd blue | 6 +/- 1    | 16 +/- 2   | 0.551 +/- 0.117 | -0.26 +/- 0.09 |   10000 |
+| p85  | Proplyd red  | 2.5 +/- 1  | 8 +/- 1    | 0.460 +/- 0.194 | -0.34 +/- 0.18 |   10000 |
+|      | Neb blue     | 11 +/- 1   | 14 +/- 1   | 1.155 +/- 0.143 | 0.06 +/- 0.05  |         |
+|      | Neb red      | 13 +/- 1   | 23 +/- 1   | 0.831 +/- 0.082 | -0.08 +/- 0.04 |         |
+|------+--------------+------------+------------+-----------------+----------------+---------|
+| p84  | Neb A (main) | 230 +/- 62 | 306 +/- 78 | 1.105 +/- 0.413 | 0.04 +/- 0.16  |    1000 |
+| p84  | Neb C (blue) | 157 +/- 32 | 169 +/- 18 | 1.366 +/- 0.320 | 0.14 +/- 0.10  |     100 |
+#+TBLFM: $5=$3/$4 (0.68 +/- 0.03) ; f3::$6=log10($-1);f2
++ The ratio from the proplyd model is 0.59, which is quite a way from the high-density limit.
+  + This means that the [Cl III] density is not so useless after all!
++ I have removed nebular component B (the broad red component), since it is so poorly determined as to be useless. 
++ We can estimate nominal densities from the Keenan paper, using the observed ratios, assuming T=8000
+
+* Lining up the velocitieslocities
 f3
 
 
@@ -7833,24 +7881,37 @@ NIST
 
 
 ******* [Cl III] lines
+:LOGBOOK:
+CLOCK: [2013-04-26 Fri 19:51]--[2013-04-26 Fri 23:17] =>  3:26
+:END:
+:PROPERTIES:
+:ID:       059F129A-524D-4712-A4A7-72DD546A9842
+:END:
 
-+ Note that thee lines are effectively invisible in the denser proplyds
++ Note that thee lines are almost invisible in the denser proplyds
   + Which makes them good for investigating the extinction by the proplyd
   + For instance by comparison with [S III] and C III
   + It honestly looks as though there is no extinction at all
 
-|------------+------------+------+----------+------+---------------------+------------------------+------------------------+------+---------+------+-----+----+------+---|
-| Observed   |       Ritz | Rel. |      Aki | Acc. | Ei           Ek     | Lower level            | Upper level            | Type | TP      | Line |     |    |      |   |
-| Wavelength | Wavelength | Int. |     s^-1 |      | (cm-1)       (cm-1) | ---------------------- | ---------------------- |      | Ref.    | Ref. |     |    |      |   |
-| Air  (Å)   |   Air  (Å) | (?)  |          |      |                     | Conf.                  | Term                   | J    | Conf.   | Term | J   |    |      |   |
-|------------+------------+------+----------+------+---------------------+------------------------+------------------------+------+---------+------+-----+----+------+---|
-|            |            |      |          |      |                     |                        |                        |      |         |      |     |    |      |   |
-|            |   5517.709 |      | 1.46e-04 | C    | 0.00   -  18118.43  | 3s2.3p3                | 4S*                    | 3/2  | 3s2.3p3 | 2D*  | 5/2 | M1 | T761 |   |
-|            |   5517.709 |      |  8.6e-04 | D    | 0.00   -  18118.43  | 3s2.3p3                | 4S*                    | 3/2  | 3s2.3p3 | 2D*  | 5/2 | E2 | T761 |   |
-|            |   5537.873 |      |  6.5e-03 | C    | 0.00   -  18052.46  | 3s2.3p3                | 4S*                    | 3/2  | 3s2.3p3 | 2D*  | 3/2 | M1 | T761 |   |
-|            |   5537.873 |      |  5.5e-04 | D    | 0.00   -  18052.46  | 3s2.3p3                | 4S*                    | 3/2  | 3s2.3p3 | 2D*  | 3/2 | E2 | T761 |   |
-|------------+------------+------+----------+------+---------------------+------------------------+------------------------+------+---------+------+-----+----+------+---|
+|------------+----------+------+--------+----------+---------+-------+-----+---------+-------+-----+------+------|
+|       Ritz |      Aki | Acc. |     Ei |       Ek |         |       |     |         |       |     |      |      |
+| Wavelength |     s^-1 |      | (cm-1) |   (cm-1) |         |       | .   |         |       |     |      |      |
+|   Air  (Å) |          |      |        |          | Conf_{i}   | Term_{i} | J_{i}  | Conf_{k}   | Term_{k} | J_{k}  | Type | Ref  |
+|------------+----------+------+--------+----------+---------+-------+-----+---------+-------+-----+------+------|
+|            |          |      |        |          |         |       |     |         |       |     |      |      |
+|   5517.709 | 1.46e-04 | C    |   0.00 | 18118.43 | 3s2.3p3 | 4S*   | 3/2 | 3s2.3p3 | 2D*   | 5/2 | M1   | T761 |
+|   5517.709 |  8.6e-04 | D    |   0.00 | 18118.43 | 3s2.3p3 | 4S*   | 3/2 | 3s2.3p3 | 2D*   | 5/2 | E2   | T761 |
+|   5537.873 |  6.5e-03 | C    |   0.00 | 18052.46 | 3s2.3p3 | 4S*   | 3/2 | 3s2.3p3 | 2D*   | 3/2 | M1   | T761 |
+|   5537.873 |  5.5e-04 | D    |   0.00 | 18052.46 | 3s2.3p3 | 4S*   | 3/2 | 3s2.3p3 | 2D*   | 3/2 | E2   | T761 |
+|------------+----------+------+--------+----------+---------+-------+-----+---------+-------+-----+------+------|
 
+Get the data from van Hoof as well since the A values give a funny value for the line ratio in the high density limit.  
+
+
+| LAB WAVL ANG AIR | SPECTRUM | TT | CONFIGURATION   | TERM    | J_i J_k   |     A_ki | TPF | REF |
+|------------------+----------+----+-----------------+---------+-----------+----------+-----+-----|
+|          5517.72 | [Cl III] | M1 | 3s2.3p3-3s2.3p3 | 4So-2Do | 3/2 - 5/2 | 1.46E-04 | ASD | 006 |
+|          5537.89 | [Cl III] | M1 | 3s2.3p3-3s2.3p3 | 4So-2Do | 3/2 - 3/2 | 6.50E-03 | ASD | 006 |
 
 
 ******* [Fe III] lines
