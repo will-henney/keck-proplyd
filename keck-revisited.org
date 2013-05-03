@@ -10,7 +10,7 @@ CLOCK: [2013-04-18 Thu 10:49]--[2013-04-18 Thu 10:49] =>  0:00
 
 What is done?  What remains to be done?  With emphasis on finishing a first paper on 244-440
 
-** TODO [6/9] General pipeline
+** TODO [7/9] General pipeline
 + [X] Cosmic rays: solved in principle, but need to do for each slit
 + [X] Order extraction
 + [X] Rectification
@@ -18,10 +18,11 @@ What is done?  What remains to be done?  With emphasis on finishing a first pape
   + [X] Vertical tilt - not really, but can be done afterwords 
 + [-] Continuum subtraction - this could be improved by not considering each row separately.  But is it worth it?
 + [X] Nebular subtraction
-+ [-] Flat-fielding: did this once, but not sure it is sytematized
++ [X] Flat-fielding: fixed this now
 + [X] Heliocentric correction
 + [X] Stray light
-+ [-] What else?
++ [ ] What else?
+  + [ ] Error propagation
 
 ** DONE [2/2] 244-440 in particular
 CLOSED: [2013-04-19 Fri 23:55]
@@ -123,8 +124,8 @@ In the following table, the ratio is flat-field corrected (see above).
 + I have removed nebular component B (the broad red component), since it is so poorly determined as to be useless. 
 + We can estimate nominal densities from the Keenan paper, using the observed ratios, assuming T=8000
 
-* Lining up the velocitieslocities
-f3
+* Lining up the velocities
+
 
 
 * STARTED Worked example of full pipeline: slit p85
@@ -147,6 +148,11 @@ Removed using spotless.py, as [[id:557B6ED2-7946-4F97-9EF0-C94D6E3F139E][shown d
    - [[file:Keck1/p85-protect.reg][file:~/Dropbox/KeckProplyd/Keck1/p85-protect.reg]]
 2. Second to force removal of the few CRs that the automatic process misses
    - [[file:Keck1/p85-badpix.reg][file:~/Dropbox/KeckProplyd/Keck1/p85-badpix.reg]]
+*** TODO [#A] I just noticed that the D\alpha line got zapped - must fix
+:LOGBOOK:
+- State "TODO"       from ""           [2013-05-02 Thu 23:25]
+:END:
+
 ** Extract orders and wavelength calibrate
 *** Command to extract the orders
 Important to use the final corrected order boxes contained in [[file:Keck1/t70-orders-final.reg][file:~/Dropbox/KeckProplyd/Keck1/t70-orders-final.reg]], as discussed [[id:AD19406C-8713-4AB4-9CCF-77F0A42FDC67][here]]
@@ -407,6 +413,62 @@ Results are written to p85o-order??.fits
 
 #+RESULTS: display-extracted-orders("p85o")
 : result silenced
+
+** DONE Flat field correction
+CLOSED: [2013-05-02 Thu 23:21]
+:LOGBOOK:
+CLOCK: [2013-05-02 Thu 18:48]--[2013-05-02 Thu 23:21] =>  4:33
+CLOCK: [2013-05-02 Thu 16:02]--[2013-05-02 Thu 17:10] =>  1:08
+CLOCK: [2013-05-02 Thu 13:21]--[2013-05-02 Thu 13:48] =>  0:27
+:END:
++ We will do this by dividing each extracted order by the quartz lamp image of the same order.  
++ This is after both have been corrected for order.
+  + [ ] Maybe it would also work to do it before correcting the order overlap
++ Looking at all the quartz orders:
+  #+name: display-all-orders
+  #+BEGIN_SRC sh :results silent :var spec="q69o"
+    xpaset -p ds9 cd $PWD
+    for f in Extract/${spec}-order??.fits; do
+        xpaset -p ds9 frame new
+        xpaset -p ds9 file $f
+    done
+  #+END_SRC
+  #+RESULTS:
+  
+  + It turns out that the q69o files have different sizes
+  + [X] Try to run the order extraction and overlap programs again
+    #+BEGIN_SRC sh :results verbatim
+      python hires-extract/extract-orders.py Keck1/q69b Calibration/wav0070 Keck1/t70-orders-final
+    #+END_SRC
+    That seems to have worked
+    #+BEGIN_SRC sh :results verbatim
+python hires-extract/remove-overlap.py q96
+    #+END_SRC
++ Now we can do the flat-field correction, using the new [[file:hires-extract/correct-flat-field.py][correct-flat-field.py]]
+  #+BEGIN_SRC sh
+    python hires-extract/correct-flat-field.py p85
+  #+END_SRC
++ And we can look at the results:
+  #+call: display-all-orders(spec="p85f") :results silent
+  + Better to look at one order at a time, comparing the stages
+    #+name: compare-pre-post-flat
+    #+BEGIN_SRC sh :results silent :var order=51
+      for spec in q69o p85o p85f; do
+          xpaset -p ds9 frame new
+          xpaset -p ds9 file Extract/${spec}-order${order}.fits
+      done
+    #+END_SRC
+    #+call: compare-pre-post-flat(53) :results silent
+    #+call: compare-pre-post-flat(63) :results silent
+  + The results are quite good in the dispersion direction, but bad in the spatial direction
+    + The problem is that the quartz profile falls of a bit slower than the object spectrum at the ends of the slit.  As a result, the flat-fielded profile has little spikes at the ends.
+    + *Moral:* average the flat profile along the spatial axis before dividing by it.
++ Yes that looks a lot better now
+  + Final results are in =Extract/p85f-order??.fits=
+
+
+
+
 
 ** Extract postage stamps
 #+BEGIN_SRC sh :results verbatim
