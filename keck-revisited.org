@@ -128,6 +128,40 @@ In the following table, the ratio is flat-field corrected (see above).
 
 
 
+
+* TODO [0/2] Error propagation
+:LOGBOOK:
+CLOCK: [2013-05-04 Sat 20:55]--[2013-05-04 Sat 22:06] =>  1:11
+- State "TODO"       from ""           [2013-05-02 Thu 23:36]
+:END:
++ [-] First calculate poisson noise plus dark noise for the original bias-subtracted images.
+  + [X] Look at what I did for the Ring Nebula
+  + [-] Need to work out the gain from the data, since there is no reliable documentation of it for the old chip
++ [ ] Then propagate that through all the subsequent steps
+
+** Theory
+Note that this is all for the "legacy" CCD, which was replaced in 2004. 
+*** Readout Noise
+According to the [[http://www2.keck.hawaii.edu/inst/hires/hires_data.pdf][manual]], this is 5-6 electrons
+*** Dark current
++ According to the same manual it is "< 10 elec/pixel/hour"
++ Our exposures are 300 to 900 s, so this is always < 2.5 e^{-}/pix and so can be probably be ignored. 
+*** Gain
++ The FITS header has =CCDGAIN = F=
+  + According to the [[http://www2.keck.hawaii.edu/koa/public/keywords/koa_keywords.php?keyword%3DCCDGAIN][docs]] this means "low gain"
++ [[http://www2.keck.hawaii.edu/inst/hires/ccdgain.html][These docs]] say that low gain is "1.95, 2.09, and 2.09 e-/DN" for the blue, green, and red CCDs
+  + But this is for the post-2004 chips
+  + I can't find any info on the gain for the legacy data
+    + There is an [[http://www2.keck.hawaii.edu/inst/hires/manual1.pdf][old user manual]], but it is unfinished and the the appendix on "gain" is missing.
+    + However, it does have an example where the gain is 2.38 
+  + I will just assume it is 2.38 e-/DN for the time being
+*** Measuring the gain and noise from the flat images
++ We take the ratio of two flat images, one with a 1 second exposure (q69), and the other with a 3 second exposure (q110).
++ \sigma_{R}^{2} = (dR/dI_{1})^{2} \sigma_{1}^{2} + (dR/dI_{2})^{2} \sigma_{2}^{2}
++ \sigma_{1}^{2} = I_{1 }
+
+** Application
+
 * STARTED Worked example of full pipeline: slit p85
 :LOGBOOK:
 - State "STARTED"    from ""           [2013-04-19 Fri 08:36]
