@@ -140,13 +140,36 @@ CLOCK: [2013-05-04 Sat 20:55]--[2013-05-04 Sat 22:06] =>  1:11
 + [ ] Then propagate that through all the subsequent steps
 
 ** Theory
-Note that this is all for the "legacy" CCD, which was replaced in 2004. 
+:LOGBOOK:
+CLOCK: [2013-05-05 Sun 10:45]--[2013-05-05 Sun 11:43] =>  0:58
+:END:
+Note that this is all for the "legacy" CCD, which was replaced in 2004.  Most information on the web is for the new chips, but we have to ignore that. 
 *** Readout Noise
-According to the [[http://www2.keck.hawaii.edu/inst/hires/hires_data.pdf][manual]], this is 5-6 electrons
++ To be definite, we will try to always use
+  + \delta for noise in unit of electrons
+  + \sigma for noise in units of ADU (see [[id:FDE3497E-1891-45E9-AF41-74A92C0F0F64][below]])
++ According to the [[http://www2.keck.hawaii.edu/inst/hires/hires_data.pdf][manual]], this is 5-6 electrons for the old chip
++ But the example in the [[file:legacy-hires-manual.pdf][old manual]] has 4 e^{-} rms
 *** Dark current
 + According to the same manual it is "< 10 elec/pixel/hour"
 + Our exposures are 300 to 900 s, so this is always < 2.5 e^{-}/pix and so can be probably be ignored. 
 *** Gain
+:PROPERTIES:
+:ID:       FDE3497E-1891-45E9-AF41-74A92C0F0F64
+:END:
++ Gain is measured in e^{-}/ADU
+x  + Tecnically, this is "inverse gain"
+  + e^{-} is number of electrons that accumulate in CCD well
+  + ADU is "Analog-to-Digital units", also called DN ("Data Numbers"), which are what the analog-to-digital converter (ADC) gives.
+  + For a bright source, the gain is chosen in order to match the CCD well depth to the maximum allowed ADU (typically 65,535 for a 16-bit ADC).
+  + For a faint source, the gain is chosen so that 1 ADU corresponds to a little less than the RMS read noise.
+**** Effect of gain on signal and noise
+Fundamental equations from which all else is derived:
++ Counts = e^{-} / Gain
++ stdev(Counts) = stdev(e^{-}) / Gain
++ Var(Counts) = Var(e^{-}) / (Gain)^{2}
+
+**** Particular values of gain for our data
 + The FITS header has =CCDGAIN = F=
   + According to the [[http://www2.keck.hawaii.edu/koa/public/keywords/koa_keywords.php?keyword%3DCCDGAIN][docs]] this means "low gain"
 + [[http://www2.keck.hawaii.edu/inst/hires/ccdgain.html][These docs]] say that low gain is "1.95, 2.09, and 2.09 e-/DN" for the blue, green, and red CCDs
@@ -155,10 +178,65 @@ According to the [[http://www2.keck.hawaii.edu/inst/hires/hires_data.pdf][manual
     + There is an [[http://www2.keck.hawaii.edu/inst/hires/manual1.pdf][old user manual]], but it is unfinished and the the appendix on "gain" is missing.
     + However, it does have an example where the gain is 2.38 
   + I will just assume it is 2.38 e-/DN for the time being
+*** Shot noise
++ This is the noise from Poisson statistics of incoming photons
++ Variance: \sigma^{2} = Number of photons \approx Number of e^{-}
++ /Question:/ should we include the system efficiciency here?
+  + Or can we just take the square-root of the number of electrons?
++ Variance of counts:
+  + Define N = (e^{-} / Gain) as signal in ADU, \sigma^{2} as variance of N
+  + \sigma^{2} = Var(e^{-}) / (Gain)^{2} = e^{-} / (Gain)^{2} = N / Gain
+
 *** Measuring the gain and noise from the flat images
 + We take the ratio of two flat images, one with a 1 second exposure (q69), and the other with a 3 second exposure (q110).
 + \sigma_{R}^{2} = (dR/dI_{1})^{2} \sigma_{1}^{2} + (dR/dI_{2})^{2} \sigma_{2}^{2}
-+ \sigma_{1}^{2} = I_{1 }
++ \sigma_{1}^{2} = I_{1}+ \sigma_{0}^{2}
+  + where \sigma_{0} is the read-out noise
+*** Stuff found on the web
+**** QUOTE Hamamatsu Learning Center
+http://learn.hamamatsu.com/articles/emccds.html
+
+Evaluation of the signal-to-noise ratio (SNR) of an electron multiplying CCD requires that the conventional expression applied in the calculation for CCD sensors be modified to reflect the effect of on-chip multiplication gain and the excess noise factor. In effect the SNR is equivalent to the total number of photons detected per pixel during the integration interval divided by the combined noise from all sources, as follows:
+
+SNR = (S × Qe) / Ntotal
+
+where S represents the number of incident photons per pixel, and Q(e) is the quantum efficiency, or proportion of total photons actually detected as signal. The total noise in the system is represented by N(total), which combines several variables according to the following relationship:
+
+Ntotal = (S × Qe × F2) + (D × F2) + (Nr / M)2
+
+where F represents the excess noise factor, D is the total dark signal, N(r) is the camera read noise, and M is the on-chip multiplication gain. The noise terms in the denominator of the EMCCD noise equation represent the familiar CCD noise components, photon shot noise, dark noise, and read noise, respectively, with appropriate modifications to account for loss mechanisms and statistical noise sources specific to the process of on-chip multiplication gain. This is accomplished by applying the excess noise factor (F) to the first two terms, and the multiplication gain factor (M) to the read noise term. The effective shot noise and dark noise are increased by the excess noise factor, while read noise is reduced by the multiplication gain achieved in the gain register.
+
+**** QUOTE ANDOR Technology
+http://www.andor.com/learning-academy/ccd,-emccd-and-iccd-comparisons-difference-between-the-sensors
+
+If we now consider our equation for the Signal to noise, with P photons falling on a pixel in our camera with a quantum efficiency DQE and a Gain M. The signal output from our camera is electrons would be:
+
+S = M D_{QE} P 
+
+The total camera noise is the sum in quadrature of the various noise sources, i.e. the square root of the sum of the noises squared. Therefore the total Noise is as follows:
+
+Noise = \delta_{total} = [\delta_{readout}^{2} + F^{2} M^{2} (\delta_{dark}^{2} + \delta_{signal}^{2} + \delta_{cic}^{2})]^{1/2}
+
+Note the Dark current noise, the Light Signal noise and Clock Induced Charge noise are all amplified and hence their noise is amplified by the Gain M and we also have to take into consideration the additional amplifier noise by multiplying by the Noise Factor F. You can see this equation originates from a rearrangement of the equation for Noise factor above.
+
+S/N = [see web page]
+
+Substituting for Photon noise, the resulting equation for Signal to noise is as follows:
+
+ 
+This can be more readily appreciated by dividing the equation throughout by M.
+
+S/N = [see web page]
+ 
+If we examine the theoretical signal to noise ratios for various cameras using this equation we can appreciate the comparisons between the cameras. The parameters we have used are as follows:
+|                          | Ideal |   CCD | EMCCD |  ICCD |
+|--------------------------+-------+-------+-------+-------|
+| Quantum Efficiency (DQE) |  100% |   93% |   93% |   50% |
+| Readout Noise            |     0 |    10 |    60 |    20 |
+| Gain                     |     1 |     1 |  1000 |  1000 |
+| Spurious Noise           |     0 |  0.05 |  1000 |     0 |
+| Dark Noise               |     0 | 0.001 | 0.001 | 0.001 |
+| Noise Factor             |     1 |     1 |  1.41 |   1.6 |
 
 ** Application
 
