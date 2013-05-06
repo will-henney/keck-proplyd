@@ -144,16 +144,22 @@ CLOCK: [2013-05-04 Sat 20:55]--[2013-05-04 Sat 22:06] =>  1:11
 CLOCK: [2013-05-05 Sun 10:45]--[2013-05-05 Sun 11:43] =>  0:58
 :END:
 Note that this is all for the "legacy" CCD, which was replaced in 2004.  Most information on the web is for the new chips, but we have to ignore that. 
+
 *** Readout Noise
 + To be definite, we will try to always use
   + \delta for noise in unit of electrons
   + \sigma for noise in units of ADU (see [[id:FDE3497E-1891-45E9-AF41-74A92C0F0F64][below]])
 + According to the [[http://www2.keck.hawaii.edu/inst/hires/hires_data.pdf][manual]], this is 5-6 electrons for the old chip
 + But the example in the [[file:legacy-hires-manual.pdf][old manual]] has 4 e^{-} rms
+
+
 *** Dark current
 + According to the same manual it is "< 10 elec/pixel/hour"
 + Our exposures are 300 to 900 s, so this is always < 2.5 e^{-}/pix and so can be probably be ignored. 
 *** Gain
+:LOGBOOK:
+CLOCK: [2013-05-05 Sun 15:15]--[2013-05-05 Sun 15:16] =>  0:01
+:END:
 :PROPERTIES:
 :ID:       FDE3497E-1891-45E9-AF41-74A92C0F0F64
 :END:
@@ -164,12 +170,17 @@ x  + Tecnically, this is "inverse gain"
   + For a bright source, the gain is chosen in order to match the CCD well depth to the maximum allowed ADU (typically 65,535 for a 16-bit ADC).
   + For a faint source, the gain is chosen so that 1 ADU corresponds to a little less than the RMS read noise.
 **** Effect of gain on signal and noise
-Fundamental equations from which all else is derived:
-+ Counts = e^{-} / Gain
-+ stdev(Counts) = stdev(e^{-}) / Gain
-+ Var(Counts) = Var(e^{-}) / (Gain)^{2}
++ Fundamental equations from which all else is derived:
+  + Counts = e^{-} / Gain
+  + stdev(Counts) = stdev(e^{-}) / Gain
+  + Var(Counts) = Var(e^{-}) / (Gain)^{2}
++ Contribution of read-out noise to \sigma of signal N (in ADU) is
+  + \sigma_{0} = \delta_{0} / M
+  + M is the gain
+
 
 **** Particular values of gain for our data
+
 + The FITS header has =CCDGAIN = F=
   + According to the [[http://www2.keck.hawaii.edu/koa/public/keywords/koa_keywords.php?keyword%3DCCDGAIN][docs]] this means "low gain"
 + [[http://www2.keck.hawaii.edu/inst/hires/ccdgain.html][These docs]] say that low gain is "1.95, 2.09, and 2.09 e-/DN" for the blue, green, and red CCDs
@@ -178,6 +189,7 @@ Fundamental equations from which all else is derived:
     + There is an [[http://www2.keck.hawaii.edu/inst/hires/manual1.pdf][old user manual]], but it is unfinished and the the appendix on "gain" is missing.
     + However, it does have an example where the gain is 2.38 
   + I will just assume it is 2.38 e-/DN for the time being
+
 *** Shot noise
 + This is the noise from Poisson statistics of incoming photons
 + Variance: \sigma^{2} = Number of photons \approx Number of e^{-}
@@ -185,14 +197,36 @@ Fundamental equations from which all else is derived:
   + Or can we just take the square-root of the number of electrons?
 + Variance of counts:
   + Define N = (e^{-} / Gain) as signal in ADU, \sigma^{2} as variance of N
-  + \sigma^{2} = Var(e^{-}) / (Gain)^{2} = e^{-} / (Gain)^{2} = N / Gain
+  + \sigma^{2} = Var(e^{-}) / M^{2} = e^{-} / M^{2} = N / M
+  + Remember that M is the gain
 
 *** Measuring the gain and noise from the flat images
+:LOGBOOK:
+CLOCK: [2013-05-05 Sun 19:07]
+CLOCK: [2013-05-05 Sun 18:26]--[2013-05-05 Sun 18:29] =>  0:03
+CLOCK: [2013-05-05 Sun 16:45]--[2013-05-05 Sun 17:35] =>  0:50
+CLOCK: [2013-05-05 Sun 15:16]--[2013-05-05 Sun 15:37] =>  0:21
+:END:
 + We take the ratio of two flat images, one with a 1 second exposure (q69), and the other with a 3 second exposure (q110).
-+ \sigma_{R}^{2} = (dR/dI_{1})^{2} \sigma_{1}^{2} + (dR/dI_{2})^{2} \sigma_{2}^{2}
-+ \sigma_{1}^{2} = I_{1}+ \sigma_{0}^{2}
++ All of the example calculations I have found (like [[http://spiff.rit.edu/classes/phys445/lectures/gain/gain.html][this one]]) are for the case of two images with the same exposure time, so I can't use their results as-is.
++ Instead, I will work everything out from first principles. 
++ \sigma_{R}^{2} = (dR/dN_{1})^{2} \sigma_{1}^{2} + (dR/dN_{2})^{2} \sigma_{2}^{2}
++ \sigma_{1}^{2} = N_{1}/M + \delta_{0}^{2}/M^{2}
   + where \sigma_{0} is the read-out noise
++ \sigma_{2}^{2} = N_{2}/M + \delta_{0}^{2}/M^{2}
++ R = N_{1}/N_{2}
+  + dR/dN_{1} = 1/N_{2} = R/N_{1}
+  + dR/dN_{2} = -N_{1}/N_{2}^{2} = -R/N_{2}
++ \Rightarrow \sigma_{R}^{2}/R^{2} = \sigma_{1}^{2}/N_{1}^{2} + \sigma_{2}^{2}/N_{2}^{2}
+  + \sigma_{R}^{2}/R^{2} = 1/(N_{1} M) + \delta_{0}^{2}/(N_{1}^{2} M^{2}) + 1/(N_{2} M) + \delta_{0}^{2}/(N_{2}^{2} M^{2})
++ The "average" ratio of the two flats should be the ratio of exposure times: R_{0}, which is about 3 in our case.
+  + \lang{}N_{2}\rang = \lang{}N_{1}\rang/R_{0}
+  + \Rightarrow 1/(N_{1} M) + 1/(N_{2} M) = (1 + R_{0})/(N_{1} M)
+  + \delta_{0}^{2}/(N_{1}^{2} M^{2}) + \delta_{0}^{2}/(N_{2}^{2} M^{2}) = (1 + R_{0}^{2}) \delta_{0}^{2}/(N_{1}^{2} M^{2})
+  + \Rightarrow \sigma_{R}^{2}/R^{2} = (1 + R_{0})/(N_{1} M) + (1 + R_{0}^{2}) \delta_{0}^{2}/(N_{1}^{2} M^{2})
+
 *** Stuff found on the web
+That is vaguely relevant. 
 **** QUOTE Hamamatsu Learning Center
 http://learn.hamamatsu.com/articles/emccds.html
 
