@@ -2,8 +2,11 @@
 #+SEQ_TODO: TODO(t!) STARTED(s!) WAITING(w@) | DONE(d) CANCELED(c@)
 
 
-* [1/5] High-level overview April 2013
+* TODO [1/5] High-level overview April 2013
 :LOGBOOK:
+- State "TODO"       from "STARTED"    [2013-05-05 Sun 22:55]
+- State "STARTED"    from "TODO"       [2013-05-05 Sun 22:55]
+- State "TODO"       from ""           [2013-05-05 Sun 22:55]
 CLOCK: [2013-04-18 Thu 10:51]--[2013-04-18 Thu 16:12] =>  5:21
 CLOCK: [2013-04-18 Thu 10:49]--[2013-04-18 Thu 10:49] =>  0:00
 :END:
@@ -202,7 +205,7 @@ x  + Tecnically, this is "inverse gain"
 
 *** Measuring the gain and noise from the flat images
 :LOGBOOK:
-CLOCK: [2013-05-05 Sun 19:07]
+CLOCK: [2013-05-05 Sun 19:07]--[2013-05-05 Sun 19:42] =>  0:35
 CLOCK: [2013-05-05 Sun 18:26]--[2013-05-05 Sun 18:29] =>  0:03
 CLOCK: [2013-05-05 Sun 16:45]--[2013-05-05 Sun 17:35] =>  0:50
 CLOCK: [2013-05-05 Sun 15:16]--[2013-05-05 Sun 15:37] =>  0:21
@@ -224,6 +227,21 @@ CLOCK: [2013-05-05 Sun 15:16]--[2013-05-05 Sun 15:37] =>  0:21
   + \Rightarrow 1/(N_{1} M) + 1/(N_{2} M) = (1 + R_{0})/(N_{1} M)
   + \delta_{0}^{2}/(N_{1}^{2} M^{2}) + \delta_{0}^{2}/(N_{2}^{2} M^{2}) = (1 + R_{0}^{2}) \delta_{0}^{2}/(N_{1}^{2} M^{2})
   + \Rightarrow \sigma_{R}^{2}/R^{2} = (1 + R_{0})/(N_{1} M) + (1 + R_{0}^{2}) \delta_{0}^{2}/(N_{1}^{2} M^{2})
+
+**** Summary of how to estimate gain from ratio of flats
+:LOGBOOK:
+CLOCK: [2013-05-05 Sun 19:30]--[2013-05-05 Sun 20:15] =>  0:45
+:END:
++ The fractional variance in the ratio should be proportional to the reciprocal of the brightness of a single exposure, 1/N_{1}, with constant of proportionality (1 + R_{0})/M
+  + For the more common case of equal exposures, this is just 2/M
++ There is also a term proportional to 1/N_{1}^{2} that comes from the read-noise.  But this should be small, except when the signal is very small.
+**** Empirical results from q110/q69
+:LOGBOOK:
+CLOCK: [2013-05-05 Sun 22:33]--[2013-05-05 Sun 23:00] =>  0:27
+:END:
++ Using the ratio-of-flats method indicates that the gain should be about 0.4
++ This is much higher than the 2.0 to 2.7 that I was expecting. 
+[[./measure_noise2.png]]
 
 *** Stuff found on the web
 That is vaguely relevant. 
