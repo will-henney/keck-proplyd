@@ -132,14 +132,17 @@ In the following table, the ratio is flat-field corrected (see above).
 
 
 
-* TODO [0/2] Error propagation
+* TODO [1/2] Error propagation
 :LOGBOOK:
 CLOCK: [2013-05-04 Sat 20:55]--[2013-05-04 Sat 22:06] =>  1:11
 - State "TODO"       from ""           [2013-05-02 Thu 23:36]
 :END:
-+ [-] First calculate poisson noise plus dark noise for the original bias-subtracted images.
+:PROPERTIES:
+:EXPORT_FILE_NAME: error-propagation
+:END:
++ [X] First calculate poisson noise plus dark noise for the original bias-subtracted images.
   + [X] Look at what I did for the Ring Nebula
-  + [-] Need to work out the gain from the data, since there is no reliable documentation of it for the old chip
+  + [X] Need to work out the gain from the data, since there is no reliable documentation of it for the old chip
 + [ ] Then propagate that through all the subsequent steps
 
 ** Theory
@@ -167,7 +170,7 @@ CLOCK: [2013-05-05 Sun 15:15]--[2013-05-05 Sun 15:16] =>  0:01
 :ID:       FDE3497E-1891-45E9-AF41-74A92C0F0F64
 :END:
 + Gain is measured in e^{-}/ADU
-x  + Tecnically, this is "inverse gain"
++ Tecnically, this is "inverse gain"
   + e^{-} is number of electrons that accumulate in CCD well
   + ADU is "Analog-to-Digital units", also called DN ("Data Numbers"), which are what the analog-to-digital converter (ADC) gives.
   + For a bright source, the gain is chosen in order to match the CCD well depth to the maximum allowed ADU (typically 65,535 for a 16-bit ADC).
@@ -235,15 +238,57 @@ CLOCK: [2013-05-05 Sun 19:30]--[2013-05-05 Sun 20:15] =>  0:45
 + The fractional variance in the ratio should be proportional to the reciprocal of the brightness of a single exposure, 1/N_{1}, with constant of proportionality (1 + R_{0})/M
   + For the more common case of equal exposures, this is just 2/M
 + There is also a term proportional to 1/N_{1}^{2} that comes from the read-noise.  But this should be small, except when the signal is very small.
-**** Empirical results from q110/q69
+
+** Empirical results from ratios of paired exposures
 :LOGBOOK:
+CLOCK: [2013-05-07 Tue 19:09]--[2013-05-07 Tue 22:09] =>  3:00
+CLOCK: [2013-05-07 Tue 16:10]--[2013-05-07 Tue 17:17] =>  1:07
+CLOCK: [2013-05-07 Tue 12:00]--[2013-05-07 Tue 13:40] =>  1:40
+CLOCK: [2013-05-07 Tue 08:30]--[2013-05-07 Tue 10:40] =>  2:10
 CLOCK: [2013-05-05 Sun 22:33]--[2013-05-05 Sun 23:00] =>  0:27
 :END:
-+ Using the ratio-of-flats method indicates that the gain should be about 0.4
-+ This is much higher than the 2.0 to 2.7 that I was expecting. 
-[[./measure_noise2.png]]
++ We apply the above techniques to our Keck data
+*** Using two flats
+The only quartz flats we have are =q69= and =q110=, which have exposures of 1 sec and 3 sec, respectively. 
+Applying the above techniques gives the results shown in the accompanying figures
 
-*** Stuff found on the web
+#+html: <div style="float:right">
+#+ATTR_HTML: :width 500
+[[./measure-noise-q69-q110.png]]
+#+html: </div>
+
+#+html: <div style="float:right">
+#+ATTR_HTML: :width 500
+[[./measure-gain-q69-q110.png]]
+#+html: </div>
+
+The first figure shows a grayscale image of the q110 signal (x-axis) and the ratio q110/q69 (y-axis).
++ The ratio is normalized by the ratio of exposure times (3) and the signal, in units of ADC DN counts, is shown on a logarithmic scale.
++ The blue line shows the average normalized ratio (which should be 1) and the red dashed lines show +/- 1 sigma.  The blue dashed lines show the theoretical sigma, calculated from the equation given above.
++ /Note that the averages and standard deviations are estimated using robust measures – the trimean and the interquartile range, respectively – that are relatively insensitive to outliers/
+
+The second figure shows as purple symbols the measured standard deviation of the ratio, plotted against the number of counts in the longer exposure, on a log-log scale.  
++ The solid lines show the theoretical values for three different values of the gain.
++ The dotted line shows the effect of changing the value of the read-out noise.
++ The data are fit remarkably well by the gain=6 line
+
+  
+
+
+*** Using object exposures
+
+
++ Using the ratio-of-flats method indicates that the gain should be about 3.5
++ This is  higher than the 2.0 to 2.7 that I was expecting. 
+
+#+ATTR_HTML: :width 500 :style float:left
+[[./measure-noise-p86-p87.png]]
+
+#+ATTR_HTML: :width 500 :style float:left
+[[./measure-gain-p86-p87.png]]
+
+
+*** Stuff found on the web                                         :noexport:
 That is vaguely relevant. 
 **** QUOTE Hamamatsu Learning Center
 http://learn.hamamatsu.com/articles/emccds.html
@@ -11128,7 +11173,7 @@ The theoretical side will be described in [[file:~/Work/Nahiely/proplyd-cloudy/p
 #+DESCRIPTION:
 #+KEYWORDS:
 #+LANGUAGE:  en
-#+OPTIONS:   H:4 num:t toc:t \n:nil @:t ::t |:t ^:{} -:t f:t *:t <:t
+#+OPTIONS:   H:6 num:t toc:t \n:nil @:t ::t |:t ^:{} -:t f:t *:t <:t
 #+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
 #+INFOJS_OPT: view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
 #+EXPORT_SELECT_TAGS: export
