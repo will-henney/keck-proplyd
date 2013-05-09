@@ -241,6 +241,7 @@ CLOCK: [2013-05-05 Sun 19:30]--[2013-05-05 Sun 20:15] =>  0:45
 
 ** Empirical results from ratios of paired exposures
 :LOGBOOK:
+CLOCK: [2013-05-08 Wed 08:40]--[2013-05-08 Wed 10:07] =>  1:27
 CLOCK: [2013-05-07 Tue 19:09]--[2013-05-07 Tue 22:09] =>  3:00
 CLOCK: [2013-05-07 Tue 16:10]--[2013-05-07 Tue 17:17] =>  1:07
 CLOCK: [2013-05-07 Tue 12:00]--[2013-05-07 Tue 13:40] =>  1:40
@@ -252,40 +253,51 @@ CLOCK: [2013-05-05 Sun 22:33]--[2013-05-05 Sun 23:00] =>  0:27
 The only quartz flats we have are =q69= and =q110=, which have exposures of 1 sec and 3 sec, respectively. 
 Applying the above techniques gives the results shown in the accompanying figures
 
-#+html: <div style="float:right">
+#+html: <div style="float:right; background:#eee">
+#+CAPTION: Statistics of ratio of two flat-field images
 #+ATTR_HTML: :width 500
 [[./measure-noise-q69-q110.png]]
 #+html: </div>
 
-#+html: <div style="float:right">
+#+html: <div style="float:right; background:#eee">
+#+CAPTION: Noise versus signal for ratio of two flat-field images
 #+ATTR_HTML: :width 500
 [[./measure-gain-q69-q110.png]]
 #+html: </div>
 
 The first figure shows a grayscale image of the q110 signal (x-axis) and the ratio q110/q69 (y-axis).
-+ The ratio is normalized by the ratio of exposure times (3) and the signal, in units of ADC DN counts, is shown on a logarithmic scale.
-+ The blue line shows the average normalized ratio (which should be 1) and the red dashed lines show +/- 1 sigma.  The blue dashed lines show the theoretical sigma, calculated from the equation given above.
++ The ratio is normalized by the ratio of exposure times (3.0) and the signal, in units of ADC DN counts, is shown on a logarithmic scale.
++ The blue line shows the average normalized ratio (which should be 1) and the red dashed lines show ± 1 σ.  The blue dashed lines show the theoretical sigma, calculated from the equation given above.
 + /Note that the averages and standard deviations are estimated using robust measures – the trimean and the interquartile range, respectively – that are relatively insensitive to outliers/
 
 The second figure shows as purple symbols the measured standard deviation of the ratio, plotted against the number of counts in the longer exposure, on a log-log scale.  
 + The solid lines show the theoretical values for three different values of the gain.
 + The dotted line shows the effect of changing the value of the read-out noise.
-+ The data are fit remarkably well by the gain=6 line
++ The data are fit remarkably well by the =gain = 6= line
+  + This is a much larger gain than I was expecting, despite the fact that both images have =CCDGAIN = F= in the header, which supposedly indicates low gain.
++ Another strange thing is that the (ratio/3.0) is not exactly unity, although it does tend more towards one for higher signal.
+  + This suggests there may be a zero-point error
+  + Alternatively, the exposure time may be only accurate to 10 milliseconds
 
-  
+*** Using two object exposures
+Since I was suspicious of the high gain derived from the flats, I have done the same exercise, but using two different exposures of the same object, which /supposedly/ have the same slit position and angle.  
 
+#+html: <div style="float:right; background:#eee">
+#+CAPTION: Statistics of ratio of two spectra of 244-440
+#+ATTR_HTML: :width 500
+[[./measure-noise-p86-p87.png]]
+#+html: </div>
 
-*** Using object exposures
+#+html: <div style="float:right; background:#eee">
+#+CAPTION: Noise versus signal for ratio of two spectra of 244-440
+#+ATTR_HTML: :width 500
+[[./measure-gain-p86-p87.png]]
+#+html: </div>
 
-
+I tried it for a few pairs, but the only ones that gave sensible results are ones where the exposures were taken immediately after one another (which makes sense). 
++ 
 + Using the ratio-of-flats method indicates that the gain should be about 3.5
 + This is  higher than the 2.0 to 2.7 that I was expecting. 
-
-#+ATTR_HTML: :width 500 :style float:left
-[[./measure-noise-p86-p87.png]]
-
-#+ATTR_HTML: :width 500 :style float:left
-[[./measure-gain-p86-p87.png]]
 
 
 *** Stuff found on the web                                         :noexport:
