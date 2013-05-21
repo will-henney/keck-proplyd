@@ -127,12 +127,45 @@ In the following table, the ratio is flat-field corrected (see above).
 + I have removed nebular component B (the broad red component), since it is so poorly determined as to be useless. 
 + We can estimate nominal densities from the Keenan paper, using the observed ratios, assuming T=8000
 
+
+
+** [Fe III]
+:LOGBOOK:
+CLOCK: [2013-05-21 Tue 16:05]--[2013-05-21 Tue 16:48] =>  0:43
+:END:
++ It turns out that 4883/5271 is a good density indicator, both for the range < a few thousand pcc and > 1e5 pcc, although it is rather insensitive around 1e4 pcc
++ This can be seen clearly in the difference between the diffuse blue layer and the main nebular component
+*** PyNeb diagnostic plots
+#+BEGIN_SRC python :results file
+import pyneb as pn
+import matplotlib.pyplot as plt
+import numpy as np
+fe3 = pn.Atom('Fe', 3)
+t_grid = [8000., 10000., 12000.]
+den_grid = np.logspace(2., 7.)
+for t, c in zip(t_grid, 'rgb'):
+    em4883 = fe3.getEmissivity(t, den_grid, wave=4883)
+    em5272 = fe3.getEmissivity(t, den_grid, wave=5272)
+    plt.loglog(den_grid, em5272, c, label="5272, T = {}".format(int(t)))
+    plt.loglog(den_grid, em4883, c+'--', label="4883, T = {}".format(int(t)))
+plt.xlabel("Electron density, N_e (cm^{-3})")
+plt.ylabel("Emission coefficient (erg cm^3 s^{-1})")
+plt.legend(loc="lower left", fontsize="small")
+plt.title("[Fe III] 5272 and 4883")
+plotfile = "fe3-5272-4883-em.pdf"
+plt.savefig(plotfile)
+return plotfile
+#+END_SRC
+
+#+RESULTS:
+[[file:fe3-5272-4883-em.pdf]]
+
 * Lining up the velocities
 
 
 
 
-* TODO [1/2] Error propagation
+* TODO [2/3] Error propagation
 :LOGBOOK:
 CLOCK: [2013-05-04 Sat 20:55]--[2013-05-04 Sat 22:06] =>  1:11
 - State "TODO"       from ""           [2013-05-02 Thu 23:36]
