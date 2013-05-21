@@ -178,7 +178,8 @@ CLOCK: [2013-05-04 Sat 20:55]--[2013-05-04 Sat 22:06] =>  1:11
   + [X] Need to work out the gain from the data, since there is no reliable documentation of it for the old chip
 + [ ] Then propagate that through all the subsequent steps
 
-** Theory
+** DONE Theory
+CLOSED: [2013-05-09 Thu 10:56]
 :LOGBOOK:
 CLOCK: [2013-05-05 Sun 10:45]--[2013-05-05 Sun 11:43] =>  0:58
 :END:
@@ -251,7 +252,7 @@ CLOCK: [2013-05-05 Sun 15:16]--[2013-05-05 Sun 15:37] =>  0:21
 + Instead, I will work everything out from first principles. 
 + \sigma_{R}^{2} = (dR/dN_{1})^{2} \sigma_{1}^{2} + (dR/dN_{2})^{2} \sigma_{2}^{2}
 + \sigma_{1}^{2} = N_{1}/M + \delta_{0}^{2}/M^{2}
-  + where \sigma_{0} is the read-out noise
+  + where \delta_{0} is the read-out noise in electrons
 + \sigma_{2}^{2} = N_{2}/M + \delta_{0}^{2}/M^{2}
 + R = N_{1}/N_{2}
   + dR/dN_{1} = 1/N_{2} = R/N_{1}
@@ -271,8 +272,21 @@ CLOCK: [2013-05-05 Sun 19:30]--[2013-05-05 Sun 20:15] =>  0:45
 + The fractional variance in the ratio should be proportional to the reciprocal of the brightness of a single exposure, 1/N_{1}, with constant of proportionality (1 + R_{0})/M
   + For the more common case of equal exposures, this is just 2/M
 + There is also a term proportional to 1/N_{1}^{2} that comes from the read-noise.  But this should be small, except when the signal is very small.
+*** Application to observed images
+:LOGBOOK:
+CLOCK: [2013-05-20 Mon 17:05]--[2013-05-20 Mon 17:28] =>  0:23
+:END:
+:PROPERTIES:
+:ID:       E2C8CD5C-0E15-46E6-B507-B670DFA1A099
+:END:
++ Much simpler than above
+  + \sigma_{}^{2} = N_{}/M + \delta_{0}^{2}/M^{2}
+  + N is the signal in ADU
+  + M is the gain (4 e^{-}/ADU)
+  + \delta_{0} is the read-out noise (5 e^{-1})
 
-** Empirical results from ratios of paired exposures
+** DONE Empirical results from ratios of paired exposures
+CLOSED: [2013-05-09 Thu 10:56]
 :LOGBOOK:
 CLOCK: [2013-05-08 Wed 08:40]--[2013-05-08 Wed 10:07] =>  1:27
 CLOCK: [2013-05-07 Tue 19:09]--[2013-05-07 Tue 22:09] =>  3:00
@@ -286,13 +300,11 @@ CLOCK: [2013-05-05 Sun 22:33]--[2013-05-05 Sun 23:00] =>  0:27
 The only quartz flats we have are =q69= and =q110=, which have exposures of 1 sec and 3 sec, respectively. 
 Applying the above techniques gives the results shown in the accompanying figures
 
-#+html: <div style="float:right; background:#eee">
+#+html: <div class="wjhfig" style="float:right">
 #+CAPTION: Statistics of ratio of two flat-field images
 #+ATTR_HTML: :width 500
 [[./measure-noise-q69-q110.png]]
-#+html: </div>
-
-#+html: <div style="float:right; background:#eee">
+-----
 #+CAPTION: Noise versus signal for ratio of two flat-field images
 #+ATTR_HTML: :width 500
 [[./measure-gain-q69-q110.png]]
@@ -315,22 +327,32 @@ The second figure shows as purple symbols the measured standard deviation of the
 *** Using two object exposures
 Since I was suspicious of the high gain derived from the flats, I have done the same exercise, but using two different exposures of the same object, which /supposedly/ have the same slit position and angle.  
 
-#+html: <div style="float:right; background:#eee">
-#+CAPTION: Statistics of ratio of two spectra of 244-440
+#+html: <div class="wjhfig" style="float:right">
+#+CAPTION: Statistics of ratio of two spectra of 182-413
 #+ATTR_HTML: :width 500
 [[./measure-noise-p86-p87.png]]
-#+html: </div>
-
-#+html: <div style="float:right; background:#eee">
-#+CAPTION: Noise versus signal for ratio of two spectra of 244-440
+-----
+#+CAPTION: Noise versus signal for ratio of two spectra of 182-413
 #+ATTR_HTML: :width 500
 [[./measure-gain-p86-p87.png]]
 #+html: </div>
 
 I tried it for a few pairs, but the only ones that gave sensible results are ones where the exposures were taken immediately after one another (which makes sense). 
-+ 
-+ Using the ratio-of-flats method indicates that the gain should be about 3.5
-+ This is  higher than the 2.0 to 2.7 that I was expecting. 
++ The figures show the results from two exposures of 182-413, both at PA=152:
+  + =p86= with =EXPOSURE=300=
+  + =p87= with =EXPOSURE=900=
++ Similar results are obtained for other pairs:
+  + =p77= (900 s) and =p78= (300 s) at PA=242 for 182-413
+  + =p83= (300s) and =p84= (600s) at PA=142 for 244-440
++ Using a pair taken on different nights gives a nonsense, even when the PA was ostemsibly the same.
+  + For example, =p75= (900 s) and =p59= (300 s) at PA=225 for 177-341
+  + Presumably, the position was not quite the same
++ The derived gain from all 3 reliable pairs is 3.5 e^{-}/DN
+  + This is still higher than the 2.0 to 2.7 that I was expecting
+  + Although it is lower than the value derived from the flat-fields, which is odd since they both ostensibly have the same low-gain setting. 
++ For signal levels above 400, the noise stops falling with signal, but levels off at about σ(R)/R \approx 0.03 for the 182-413 pairs.
+  + Maybe this is because the bright parts are more compact (both spatially and in wavelength) and so are more sensitive to small misalignments between the two exposures.
+  + For the 244-440 pair, this does not happen so much: the noise keeps falling down to σ(R)/R < 0.02, although it does start to deviate from the gain=3.5 prediction. 
 
 
 *** Stuff found on the web                                         :noexport:
@@ -380,10 +402,53 @@ If we examine the theoretical signal to noise ratios for various cameras using t
 | Dark Noise               |     0 | 0.001 | 0.001 | 0.001 |
 | Noise Factor             |     1 |     1 |  1.41 |   1.6 |
 
-** Application
+*** Comparison with Adal's results
++ Adal finds a gain of about 5
++ Also that the KOA extra headers include =CCDGN01= with a value of 4.8, which is consistent with this.
++ This is slightly higher from my value of 3.5 from the object spectra
++ But it is lower than the value of 6 that I get from the flats. 
++ Maybe I should use gain=4 as a compromise. 
+**** QUOTE Adal's message [2013-05-09 Thu]
+I took a quick look on your calculations and I must admit that I did not follow them very well... hehe, but it is probably because my head is focused on the postdoc project. However, what I actually did:
+
+First, I took a look on the headers from the images that we downloaded from the Keck archive (no those that Bob shared with you). In these headers, there is a parameter call "CCDGN01" which is defined as "CCD gain extension 1" that have a value of 4.8.  This should be the gain.
+
+Second, in the Keck archive images we indeed have flats with exposures of 1s and 3s. So, I followed the instructions of one of the links that you put on Evernote to calculate the gain.
+
+From the "simple and inaccuracy method" the gain values are of about 4.6-4.9 e-/ADU. I did statistics in two areas of the ccd.
+
+From comparing 1s and 3s flats with statistics in one box, I obtain a gain of 5 e-/ADU. Note: I use the variance = standard deviation**2, which is actually the real definition... I do not understand why in the link they divide by 2. If I use their definition, the gain goes to 10 e-/ADU and it does not make sense.
+
+So, maybe the 4.8 in the header is not completely unappropriated.
+
+** STARTED [6/8] Application to data reduction pipeline
+:LOGBOOK:
+CLOCK: [2013-05-21 Tue 11:26]--[2013-05-21 Tue 11:50] =>  0:24
+CLOCK: [2013-05-21 Tue 09:29]--[2013-05-21 Tue 10:26] =>  0:57
+CLOCK: [2013-05-20 Mon 22:06]--[2013-05-21 Tue 00:26] =>  2:20
+- State "STARTED"    from "TODO"       [2013-05-20 Mon 19:57]
+- State "TODO"       from ""           [2013-05-09 Thu 09:53]
+:END:
++ [X] Calculate initial std
++ [X] Remove stray light - just run again, do nothing special to =SIGMA= image
+  + Assume that stray light has no uncertainty
++ [X] Remove overlap
+  + We will ignore the uncertainty in the subtracted overlap
++ [X] Flat field
+  + Here, we divide the std by the flat field too
+  + Again, we assume that the flat has sufficient s/n that we can ignore uncertainty
++ [-] Extract stamps
+  + [X] Make sure that the SIGMA image gets copied over
+  + [ ] and also the cosmic ray mask, but it turns out that the order extraction didn't copy over that
++ [X] Remove continuum
+  + [X] I calculate the std of the residuals to the fit and store the standard error of the mean for each row in a seperate HDU, "SIGR".
++ [X] Deconvolve doublets
++ [ ] Remove nebula
+  + [ ] First, redo the fitting to scale the objective function by the pixel standard deviation. 
 
 * STARTED Worked example of full pipeline: slit p85
 :LOGBOOK:
+CLOCK: [2013-05-20 Mon 17:28]--[2013-05-20 Mon 17:33] =>  0:05
 - State "STARTED"    from ""           [2013-04-19 Fri 08:36]
 :END:
 CLOCK: [2013-04-19 Fri 08:26]--[2013-04-19 Fri 23:55] => 15:29
@@ -587,66 +652,104 @@ Script is [[id:715877DD-07F2-42BC-A656-3038DD845675][down here]]
 #+RESULTS: display-extracted-orders("p85b-cr")
 : result silenced
 
+
+** DONE Calculate sigma of each pixel
+CLOSED: [2013-05-20 Mon 19:55]
+:LOGBOOK:
+- State "STARTED"    from "TODO"       [2013-05-20 Mon 18:01]
+CLOCK: [2013-05-20 Mon 17:33]--[2013-05-20 Mon 18:05] =>  0:32
+- State "TODO"       from ""           [2013-05-20 Mon 17:33]
+:PROPERTIES:
+:ID:       BFA1012E-931F-4BCC-8D42-CEF4A4180583
+:END:
+:END:
++ We use the formulae given [[id:BFA1012E-931F-4BCC-8D42-CEF4A4180583][down here]]
++ New program [[file:hires-extract/find-pixel-noise.py][find-pixel-noise.py]]
+  #+BEGIN_EXAMPLE
+    KeckProplyd $ python hires-extract/find-pixel-noise.py --help
+    usage: find-pixel-noise.py [-h] [--extractdir EXTRACTDIR]
+                               [--gain GAIN] [--readout READOUT]
+                               specid
+    
+    Calculate standard deviation of each pixel Takes into account
+    Poisson noise plus readout noise. Should be applied to the bias-
+    subtracted extracted orders. Writes an extra HDU ("SIGMA") to the
+    FITS file, which contains an image of the stdev.
+    
+    positional arguments:
+      specid                Prefix of object FITS spectrum file (e.g.,
+                            p84)
+    
+    optional arguments:
+      -h, --help            show this help message and exit
+      --extractdir EXTRACTDIR
+                            Directory containing the extracted orders
+                            (default: Extract)
+      --gain GAIN           CCD inverse gain in elec/ADU (default: 4.0)
+      --readout READOUT     CCD readout noise in electrons (default:
+                            5.0)
+  #+END_EXAMPLE
++ This seems to work fine
 ** Remove stray light
 This is done by [[file:hires-extract/remove-stray-light.py][remove-stray-light.py]]
 #+BEGIN_SRC sh :results output 
-python hires-extract/remove-stray-light.py p85
+python hires-extract/remove-stray-light.py p84
 #+END_SRC
 
 #+RESULTS:
 #+begin_example
 Processing  51
-WARNING: Overwriting existing file 'Extract/p85s-order51.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order51.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  52
-WARNING: Overwriting existing file 'Extract/p85s-order52.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order52.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  53
-WARNING: Overwriting existing file 'Extract/p85s-order53.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order53.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  54
-WARNING: Overwriting existing file 'Extract/p85s-order54.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order54.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  55
-WARNING: Overwriting existing file 'Extract/p85s-order55.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order55.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  56
-WARNING: Overwriting existing file 'Extract/p85s-order56.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order56.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  57
-WARNING: Overwriting existing file 'Extract/p85s-order57.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order57.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  58
-WARNING: Overwriting existing file 'Extract/p85s-order58.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order58.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  59
-WARNING: Overwriting existing file 'Extract/p85s-order59.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order59.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  60
-WARNING: Overwriting existing file 'Extract/p85s-order60.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order60.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  61
-WARNING: Overwriting existing file 'Extract/p85s-order61.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order61.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  62
-WARNING: Overwriting existing file 'Extract/p85s-order62.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order62.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  63
-WARNING: Overwriting existing file 'Extract/p85s-order63.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order63.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  64
-WARNING: Overwriting existing file 'Extract/p85s-order64.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order64.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  65
-WARNING: Overwriting existing file 'Extract/p85s-order65.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order65.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  66
-WARNING: Overwriting existing file 'Extract/p85s-order66.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order66.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  67
-WARNING: Overwriting existing file 'Extract/p85s-order67.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order67.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  68
-WARNING: Overwriting existing file 'Extract/p85s-order68.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order68.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  69
-WARNING: Overwriting existing file 'Extract/p85s-order69.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order69.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  70
-WARNING: Overwriting existing file 'Extract/p85s-order70.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order70.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  71
-WARNING: Overwriting existing file 'Extract/p85s-order71.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order71.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  72
-WARNING: Overwriting existing file 'Extract/p85s-order72.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order72.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  73
-WARNING: Overwriting existing file 'Extract/p85s-order73.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order73.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  74
-WARNING: Overwriting existing file 'Extract/p85s-order74.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order74.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  75
-WARNING: Overwriting existing file 'Extract/p85s-order75.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order75.fits'. [astropy.io.fits.hdu.hdulist]
 Processing  76
-WARNING: Overwriting existing file 'Extract/p85s-order76.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'Extract/p84s-order76.fits'. [astropy.io.fits.hdu.hdulist]
 #+end_example
 
 Results are written to p85s-order??.fits
@@ -666,7 +769,7 @@ Results are written to p85o-order??.fits
 #+call: display-extracted-orders("p85o")
 
 #+RESULTS: display-extracted-orders("p85o")
-: result silenced
+: "result silenced"
 
 ** DONE Flat field correction
 CLOSED: [2013-05-02 Thu 23:21]
@@ -677,7 +780,7 @@ CLOCK: [2013-05-02 Thu 13:21]--[2013-05-02 Thu 13:48] =>  0:27
 :END:
 + We will do this by dividing each extracted order by the quartz lamp image of the same order.  
 + This is after both have been corrected for order.
-  + [ ] Maybe it would also work to do it before correcting the order overlap
+  + [X] Maybe it would also work to do it before correcting the order overlap.  NO, NOT WORTH IT
 + Looking at all the quartz orders:
   #+name: display-all-orders
   #+BEGIN_SRC sh :results silent :var spec="q69o"
@@ -711,6 +814,8 @@ python hires-extract/remove-overlap.py q96
           xpaset -p ds9 frame new
           xpaset -p ds9 file Extract/${spec}-order${order}.fits
       done
+      xpaset -p ds9 frame new
+      xpaset -p ds9 file Extract/p85f-order${order}.fits["SIGMA"]
     #+END_SRC
     #+call: compare-pre-post-flat(53) :results silent
     #+call: compare-pre-post-flat(63) :results silent
