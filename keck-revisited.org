@@ -135,6 +135,7 @@ CLOCK: [2013-05-21 Tue 16:05]--[2013-05-21 Tue 16:48] =>  0:43
 :END:
 + It turns out that 4883/5271 is a good density indicator, both for the range < a few thousand pcc and > 1e5 pcc, although it is rather insensitive around 1e4 pcc
 + This can be seen clearly in the difference between the diffuse blue layer and the main nebular component
++ Unfortunately, there is no data in PyNeb for [Fe II]
 *** PyNeb diagnostic plots
 #+BEGIN_SRC python :results file
 import pyneb as pn
@@ -421,8 +422,9 @@ From comparing 1s and 3s flats with statistics in one box, I obtain a gain of 5 
 
 So, maybe the 4.8 in the header is not completely unappropriated.
 
-** STARTED [6/8] Application to data reduction pipeline
+** STARTED [7/8] Application to data reduction pipeline
 :LOGBOOK:
+CLOCK: [2013-05-21 Tue 18:30]
 CLOCK: [2013-05-21 Tue 11:26]--[2013-05-21 Tue 11:50] =>  0:24
 CLOCK: [2013-05-21 Tue 09:29]--[2013-05-21 Tue 10:26] =>  0:57
 CLOCK: [2013-05-20 Mon 22:06]--[2013-05-21 Tue 00:26] =>  2:20
@@ -443,8 +445,10 @@ CLOCK: [2013-05-20 Mon 22:06]--[2013-05-21 Tue 00:26] =>  2:20
 + [X] Remove continuum
   + [X] I calculate the std of the residuals to the fit and store the standard error of the mean for each row in a seperate HDU, "SIGR".
 + [X] Deconvolve doublets
-+ [ ] Remove nebula
-  + [ ] First, redo the fitting to scale the objective function by the pixel standard deviation. 
++ [X] Remove nebula
+  + [X] First, redo the fitting to scale the objective function by the pixel standard deviation.
+  + [X] Second, we will do fuzzing of the final fit parameters by Monte Carlo sampling from a Gaussian distribution according to the derived stdev, in order to estimate the pixel uncertainties of the nebular fit.
+  + [X] But how are we going to account for correlations in the covariance matrix. NOT AT ALL
 
 * STARTED Worked example of full pipeline: slit p85
 :LOGBOOK:
