@@ -170,6 +170,9 @@ return plotfile
 CLOCK: [2013-05-28 Tue 09:43]--[2013-05-28 Tue 13:51] =>  4:08
 CLOCK: [2013-05-28 Tue 09:34]--[2013-05-28 Tue 09:43] =>  0:09
 :END:
+:PROPERTIES:
+:ID:       674FBA41-692F-4BB3-8A3B-14292CE4FE03
+:END:
 
 *** Theoretical emissivities from Porter et al. 2007
 
@@ -250,7 +253,7 @@ CLOCK: [2013-05-28 Tue 09:34]--[2013-05-28 Tue 09:43] =>  0:09
           tab5pars = tab5dict[upper]
           return porter_equation_A1(T, tab4pars)*(1.0 + porter_equation_A2(T, ne, tab5pars))
       else:
-          print upper, " not found in ", tab5dict.keys()          
+          print(upper, " not found in ", tab5dict.keys())
           return np.ones_like(ne)
 #+END_SRC
 
@@ -267,7 +270,7 @@ First we graph the temperature dependence, without including the collisional ter
   import matplotlib.pyplot as plt
   <<porter-eq-A1>>  
   <<tab4-to-datadict>>
-  wavlist = [4922, 5016, 5048, 6678]
+  wavlist = [4922, 5016, 5048, 6678, 4388, 4438]
   Tgrid = np.linspace(5000.0, 15000.0)
   em5876 = porter_equation_A1(Tgrid, datadict[5876])
   i0 = np.argmax(Tgrid[Tgrid < 1.e4]) 
@@ -299,16 +302,28 @@ Now we do the density dependence, using the JSON file that I wrote from Table 5.
   <<tab4-to-datadict>>
   tab5dict = yaml.load(open("porter-hei-tab5.json"))
   wavlist = [4922, 5016, 5048, 6678]
+  wavlist = [6678,]
   negrid = np.logspace(2.0, 6.0)
+  colors = "bgrc"
   T0 = 1.e4
+  Tlo = 5000
+  Thi = 15000
   em5876 = emissivity(T0, negrid, 5876, datadict, tab5dict)
+  em5876_lo = emissivity(Tlo, negrid, 5876, datadict, tab5dict)
+  em5876_hi = emissivity(Thi, negrid, 5876, datadict, tab5dict)
   i0 = np.argmax(negrid[negrid < 1.e4]) 
-  for wav in wavlist:
+  for wav, c in zip(wavlist, colors):
       em = emissivity(T0, negrid, wav, datadict, tab5dict)
+      em_lo = emissivity(Tlo, negrid, wav, datadict, tab5dict)
+      em_hi = emissivity(Thi, negrid, wav, datadict, tab5dict)
       ratio = em/em5876
+      ratio_lo = em_lo/em5876_lo
+      ratio_hi = em_hi/em5876_hi
       rat0 = ratio[i0]
-      plt.semilogx(negrid, ratio/rat0, label="{}/5876: norm = {:.3f} ".format(wav, rat0))
+      plt.semilogx(negrid, ratio/rat0, c, label="{}/5876: norm = {:.3f} ".format(wav, rat0))
+      plt.fill_between(negrid, ratio_lo/rat0, ratio_hi/rat0, color=c, alpha=0.4)
   plt.legend(loc="lower right", fontsize="small")
+  plt.ylim(0.0, None)
   plt.xlabel("Density")
   plt.ylabel("Emissivity ratio @ 1e4 K, normalized to value at 1e4 pcc")
   plt.title("Density sensitivity of He I lines")
@@ -331,23 +346,25 @@ Now we combine the two
   <<he-i-emissivity>>  
   <<tab4-to-datadict>>
   tab5dict = yaml.load(open("porter-hei-tab5.json"))
-  wavlist = [4922, 5016, 5048, 5876]
-  colors = "bgrc"
-  Tgrid = np.linspace(5000.0, 15000.0)
-  nelow, ne0, nehigh = 1.e3, 1.e4, 1.e5
+  wavlist = [4922, 5016, 5048, 5876, 4388, 4438]
+  colors = "bgrcmy"
+  Tgrid = np.linspace(3000.0, 20000.0)
+  nelow, ne0, nehigh = 2.e3, 1.e4, 5.e4
   T0 = 1.e4
   em6678 = emissivity(Tgrid, ne0, 6678, datadict, tab5dict)
+  em6678_lo = emissivity(Tgrid, nelow, 6678, datadict, tab5dict)
+  em6678_hi = emissivity(Tgrid, nehigh, 6678, datadict, tab5dict)
   i0 = np.argmax(Tgrid[Tgrid < 1.e4]) 
   for wav, c in zip(wavlist, colors):
       ratio = emissivity(Tgrid, ne0, wav, datadict, tab5dict)/em6678
-      ratlow = emissivity(Tgrid, nelow, wav, datadict, tab5dict)/em6678
-      rathigh = emissivity(Tgrid, nehigh, wav, datadict, tab5dict)/em6678
+      ratlow = emissivity(Tgrid, nelow, wav, datadict, tab5dict)/em6678_lo
+      rathigh = emissivity(Tgrid, nehigh, wav, datadict, tab5dict)/em6678_hi
       rat0 = ratio[i0]
       plt.plot(Tgrid, ratio/rat0, c, label="{}/6678: norm = {:.3f} ".format(wav, rat0))
       plt.fill_between(Tgrid, ratlow/rat0, rathigh/rat0, color=c, alpha=0.4)
   plt.legend(loc="lower right", fontsize="small")
   plt.xlabel("Temperature")
-  plt.ylabel("Emissivity ratio @ 1e4 (1e3, 1e5) pcc, normalized to value at 1e4 K")
+  plt.ylabel("Emissivity ratio @ 1e4 (2e3, 5e4) pcc, normalized to value at 1e4 K")
   plt.ylim(0.0, None)
   plt.title("(T, ne) sensitivity of He I lines")
   pltname = "HeI-vs-T-ne.pdf"
@@ -8720,6 +8737,51 @@ Correlations:
 ** Heliocentric correction
 
 
+
+* 2019 reanimation of project
+:LOGBOOK:
+CLOCK: [2019-08-19 Mon 12:01]
+CLOCK: [2019-08-18 Sun 18:09]--[2019-08-18 Sun 23:01] =>  4:52
+:END:
++ Back to this after 5 years
++ Looking at Raman-scattered absorption lines
++ Best in jet spectra
+  + The jXX spectra and some pXX are from 150-353 (base of Orion S)
+  + The jwXX spectra are from 137-349
+  + Also jeXX from 163-357 but these don't have the line very strong
+** Extracting continuum to red of H\alpha
++ I want to look at the Raman-scattered wing and the FUV absorption line that is mapped to 6662 \AA
++ Start with slit p79, which is the only jet pointing with the shorter slit
+  + Then we can carry on with central portions of p80, p81, and j65 \to j71
+** Stages for slit p79
+1. Cosmetic defects - already done I think
+2. Cosmic rays - I am not very happy with my spotless program, but I will try it
+   #+name: spotless-p79
+      #+BEGIN_SRC sh :results verbatim
+     cd Keck1
+     COMMON_PARS="--output-id cr --multi-hdu --verbose --debug \
+         --edge-pars 1.0 0.001 0.01 \
+         --allow-shadows --dmax 7"
+     SPOTLESS="$HOME/Dropbox/spotless/spotless"
+     OBJ=p79
+     $SPOTLESS ${OBJ}b $COMMON_PARS --data-range 10 200 --threshold 200.0 
+      #+END_SRC
+
+      #+RESULTS: spotless-p79
+      #+begin_example
+      Warning: HDU 'SCI' not found, using the first one instead
+      Finding bad pixels by the 'edge' method
+      Data scaled to range [1.00e+01, 2.00e+02]
+      Edge detection with Canny method complete
+      Filling of holes complete
+      All values higher than 2.00e+02
+                  also added to bad pixels
+      Number of bad pixels: 343005 (14.545% of total)
+      Number of distinct bad pixel objects found: 5525
+      Number of objects skipped:  790
+      Replacement of bad pixels complete
+      #+end_example
+
 * COMMENT Test of my new org-bullets configuration. 
 ** Second
 *** Third
@@ -8859,6 +8921,9 @@ CLOCK: [2013-04-18 Thu 10:49]--[2013-04-18 Thu 10:51] =>  0:02
 
 
 * Measuring the PDR temperature by comparing Deuterium and metal fluorescent lines!!!
+:PROPERTIES:
+:ID:       87ADDCBC-C0E4-4FA9-8C38-2D833FB08F00
+:END:
   :LOGBOOK:
   CLOCK: [2013-02-03 Sun 18:12]--[2013-02-12 Tue 19:16] => 217:04
   CLOCK: [2012-09-20 Thu 21:44]--[2012-09-21 Fri 00:11] =>  2:27
@@ -8937,8 +9002,8 @@ We further assume that bnlj = bnl, with the values of bnl being calculated as de
 #+CONSTANTS: Nair=1.000293
 
 ***** H alpha
-| Transition                |               E_i |           E_k |         dE |    lambda |     dV | index |    dV* | Case B |
-|---------------------------+-------------------+---------------+------------+-----------+--------+-------+--------+--------|
+| Transition           |               E_i |           E_k |         dE |    lambda |     dV | index |    dV* | Case B |
+|----------------------+-------------------+---------------+------------+-----------+--------+-------+--------+--------|
 | H\alpha 2p(1/2) - 3d(3/2) |    0.749598426019 | 0.88841538381 | 0.13881696 | 6562.5996 | -2.828 |     5 | -7.858 |  0.182 |
 | H\alpha 2s(1/2) - 3p(3/2) | 0.749598747568292 | 0.88841538543 | 0.13881664 | 6562.6147 | -2.138 |     4 | -7.168 |  0.220 |
 | H\alpha 2p(1/2) - 3s(1/2) |    0.749598426019 | 0.88841449321 | 0.13881607 | 6562.6417 | -0.904 |     1 | -5.934 |  0.045 |
@@ -8977,8 +9042,8 @@ We further assume that bnlj = bnl, with the values of bnl being calculated as de
   + This divides the lines into the blue group (5, 4, 1, 3) and the red group (7, 6, 2)
 
 ***** D alpha
-| Transition                |              E_i |           E_k |         dE |    lambda |     dV | index |
-|---------------------------+------------------+---------------+------------+-----------+--------+-------|
+| Transition           |              E_i |           E_k |         dE |    lambda |     dV | index |
+|----------------------+------------------+---------------+------------+-----------+--------+-------|
 | D\alpha 2p(1/2) - 3d(3/2) |   0.749802385026 |  0.8886571141 | 0.13885473 | 6560.8145 | -2.828 |     5 |
 | D\alpha 2s(1/2) - 3p(3/2) | 0.74980270701155 | 0.88865711646 | 0.13885441 | 6560.8296 | -2.138 |     4 |
 | D\alpha 2p(1/2) - 3s(1/2) |   0.749802385026 | 0.88865622417 | 0.13885384 | 6560.8566 | -0.905 |     1 |
@@ -8997,8 +9062,8 @@ We further assume that bnlj = bnl, with the values of bnl being calculated as de
     + [ ] We need to run a Cloudy model to find out
 
 ***** H beta
-| Transition               |               E_i |             E_k |         dE |    lambda |     dV | index |
-|--------------------------+-------------------+-----------------+------------+-----------+--------+-------|
+| Transition           |               E_i |             E_k |         dE |    lambda |     dV | index |
+|----------------------+-------------------+-----------------+------------+-----------+--------+-------|
 | H\beta 2p(1/2) - 4d(3/2) |    0.749598426019 |  0.937000268393 | 0.18740184 | 4861.2123 | -1.184 |     5 |
 | H\beta 2s(1/2) - 4p(3/2) | 0.749598747568292 | 0.9370002690086 | 0.18740152 | 4861.2206 | -0.672 |     4 |
 | H\beta 2p(1/2) - 4s(1/2) |    0.749598426019 | 0.9369998926881 | 0.18740147 | 4861.2219 | -0.592 |     1 |
@@ -9693,6 +9758,9 @@ Do these have sufficient s/n to spot the Deuterium component?
   + HST 10 : 
 
 *** Morris - NIRSPEC AO spectra of small Trapezium proplyds (LV knots)
+:PROPERTIES:
+:ID:       1063C574-CA8C-4247-BC38-416AA4B61D65
+:END:
 + Program: U32bANS - Dwarf spheroidal central black holes
 + Wav range: 1.84 to 2.63 microns
 + Aperture: 0.027 x 2.26
@@ -10033,6 +10101,9 @@ return z
 
 
 *** Extracting each line
+:PROPERTIES:
+:ID:       46ACEA74-2E70-473B-9344-DF20000DB765
+:END:
 
 Programs are described in [[file:hires-extract/README.org][hires-extract/README.org]]
 
@@ -12076,6 +12147,9 @@ WARNING: Overwriting existing file 'Keck1/t70-1d-order76.fits'. [astropy.io.fits
 
 
 *** Conversion to heliocentric velocity
+:PROPERTIES:
+:ID:       1772B088-D07A-4228-95D4-14F9C3529EC1
+:END:
 #+BEGIN_SRC python :results output table
   import numpy as np
   import astropy.io.fits as pyfits
