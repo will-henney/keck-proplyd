@@ -3,5 +3,6 @@
 !*.org_archive
 !.gitignore
 !*.css
-!*.py
-!*.reg
+!**/*.py
+!**/*.reg
+

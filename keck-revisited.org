@@ -8753,34 +8753,280 @@ CLOCK: [2019-08-18 Sun 18:09]--[2019-08-18 Sun 23:01] =>  4:52
 + I want to look at the Raman-scattered wing and the FUV absorption line that is mapped to 6662 \AA
 + Start with slit p79, which is the only jet pointing with the shorter slit
   + Then we can carry on with central portions of p80, p81, and j65 \to j71
-** Stages for slit p79
-1. Cosmetic defects - already done I think
-2. Cosmic rays - I am not very happy with my spotless program, but I will try it
-   #+name: spotless-p79
-      #+BEGIN_SRC sh :results verbatim
-     cd Keck1
-     COMMON_PARS="--output-id cr --multi-hdu --verbose --debug \
-         --edge-pars 1.0 0.001 0.01 \
-         --allow-shadows --dmax 7"
-     SPOTLESS="$HOME/Dropbox/spotless/spotless"
-     OBJ=p79
-     $SPOTLESS ${OBJ}b $COMMON_PARS --data-range 10 200 --threshold 200.0 
-      #+END_SRC
+** Stages for jet slits
+*** Cosmetic defects for jet slits
+- already done I think
+*** Cosmic rays for jet slits
+- I am not very happy with my spotless program, but I will try it
+- First attempt was overzealous - now I am going to use the badpix file only
+  - I have just done the orders around Ha for now
+- Now to do all the others
 
-      #+RESULTS: spotless-p79
-      #+begin_example
-      Warning: HDU 'SCI' not found, using the first one instead
-      Finding bad pixels by the 'edge' method
-      Data scaled to range [1.00e+01, 2.00e+02]
-      Edge detection with Canny method complete
-      Filling of holes complete
-      All values higher than 2.00e+02
-                  also added to bad pixels
-      Number of bad pixels: 343005 (14.545% of total)
-      Number of distinct bad pixel objects found: 5525
-      Number of objects skipped:  790
-      Replacement of bad pixels complete
-      #+end_example
+#+name: spotless-jets
+#+header: :var OBJ="p79" DIR="Keck1"
+#+BEGIN_SRC sh :results verbatim
+  cd $DIR
+  COMMON_PARS="--output-id cr --multi-hdu --verbose --debug \
+      --method thresh --threshold 1e6 --allow-shadows"
+  SPOTLESS="$HOME/Dropbox/spotless/spotless"
+  $SPOTLESS ${OBJ}b $COMMON_PARS --include-regions-from-file ${OBJ}-badpix.reg
+#+END_SRC
+
+#+RESULTS: spotless-jets
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from p79-badpix.reg added to bad pixels
+: Number of bad pixels: 395 (0.017% of total)
+: Number of distinct bad pixel objects found: 113
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("j65", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from j65-badpix.reg added to bad pixels
+: Number of bad pixels: 31 (0.001% of total)
+: Number of distinct bad pixel objects found: 10
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("j66", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from j66-badpix.reg added to bad pixels
+: Number of bad pixels: 101 (0.004% of total)
+: Number of distinct bad pixel objects found: 24
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("j67", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from j67-badpix.reg added to bad pixels
+: Number of bad pixels: 80 (0.003% of total)
+: Number of distinct bad pixel objects found: 23
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("j68", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from j68-badpix.reg added to bad pixels
+: Number of bad pixels: 78 (0.003% of total)
+: Number of distinct bad pixel objects found: 17
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("j69", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from j69-badpix.reg added to bad pixels
+: Number of bad pixels: 41 (0.002% of total)
+: Number of distinct bad pixel objects found: 11
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from j70-badpix.reg added to bad pixels
+: Number of bad pixels: 80 (0.003% of total)
+: Number of distinct bad pixel objects found: 20
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("j70", "Keck2")
+
+#+call: spotless-jets("j71", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from j71-badpix.reg added to bad pixels
+: Number of bad pixels: 95 (0.004% of total)
+: Number of distinct bad pixel objects found: 28
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("jw72", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from jw72-badpix.reg added to bad pixels
+: Number of bad pixels: 92 (0.004% of total)
+: Number of distinct bad pixel objects found: 25
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("jw73", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from jw73-badpix.reg added to bad pixels
+: Number of bad pixels: 123 (0.005% of total)
+: Number of distinct bad pixel objects found: 29
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("jw74", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from jw74-badpix.reg added to bad pixels
+: Number of bad pixels: 104 (0.004% of total)
+: Number of distinct bad pixel objects found: 23
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("je75", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from je75-badpix.reg added to bad pixels
+: Number of bad pixels: 40 (0.002% of total)
+: Number of distinct bad pixel objects found: 14
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("je76", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from je76-badpix.reg added to bad pixels
+: Number of bad pixels: 127 (0.005% of total)
+: Number of distinct bad pixel objects found: 30
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+*** Extract orders for p79
+  #+begin_src sh :results verbatim
+    python hires-extract/extract-orders.py Keck1/p79b-cr Calibration/wav0070 Keck1/t70-orders-final
+  #+end_src
+
+  #+RESULTS:
+  #+begin_example
+  Number of order boxes found: 26
+  Number of objects found: 24
+  Order 51: 6909.79-7011.71
+  Label 24: 6909.78-7011.72
+
+  Number of good wavelength pixels found in order box: 77452 16387
+  Order 52: 6776.92-6876.91
+  Label 23: 6776.91-6876.92
+
+  Number of good wavelength pixels found in order box: 77445 16386
+  Order 53: 6649.06-6747.20
+  Label 22: 6649.05-6747.21
+
+  Number of good wavelength pixels found in order box: 77439 16384
+  Order 54: 6525.95-6622.29
+  Label 21: 6525.94-6622.30
+
+  Number of good wavelength pixels found in order box: 77448 16386
+  Order 55: 6407.31-6501.92
+  Label 20: 6407.30-6501.93
+
+  Number of good wavelength pixels found in order box: 77463 16387
+  Order 56: 6292.91-6385.85
+  Label 19: 6292.90-6385.86
+
+  Number of good wavelength pixels found in order box: 77496 16386
+  Order 57: 6182.53-6273.85
+  Label 18: 6182.52-6273.86
+
+  Number of good wavelength pixels found in order box: 77520 16385
+  Order 58: 6075.96-6165.71
+  Label 17: 6075.95-6165.72
+
+  Number of good wavelength pixels found in order box: 77560 16386
+  Order 59: 5973.00-6061.23
+  Label 16: 5972.99-6061.24
+
+  Number of good wavelength pixels found in order box: 77605 16387
+  Order 60: 5873.47-5960.23
+  Label 15: 5873.46-5960.24
+
+  Number of good wavelength pixels found in order box: 77664 16387
+  Order 61: 5777.21-5862.55
+  Label 14: 5593.85-5862.56
+
+  Number of good wavelength pixels found in order box: 101483 16386
+  Order 62: 5684.05-5768.01
+  Label 14: 5593.85-5862.56
+
+  Number of good wavelength pixels found in order box: 124510 16386
+  Order 63: 5593.86-5676.47
+  Label 14: 5593.85-5862.56
+
+  Number of good wavelength pixels found in order box: 98095 16385
+  Order 64: 5506.48-5587.79
+  Label 13: 5506.47-5587.80
+
+  Number of good wavelength pixels found in order box: 68313 16387
+  Order 65: 5421.79-5501.84
+  Label 12: 5421.78-5501.85
+
+  Number of good wavelength pixels found in order box: 63342 16387
+  Order 66: 5339.66-5418.49
+  Label 11: 5339.66-5418.50
+
+  Number of good wavelength pixels found in order box: 58401 16384
+  Order 67: 5259.99-5337.62
+  Label 10: 5259.99-5337.63
+
+  Number of good wavelength pixels found in order box: 53483 16390
+  Order 68: 5182.66-5259.13
+  Label 9: 5182.66-5259.14
+
+  Number of good wavelength pixels found in order box: 48495 16386
+  Order 69: 5107.58-5182.92
+  Label 8: 5107.58-5182.93
+
+  Number of good wavelength pixels found in order box: 43471 16386
+  Order 70: 5034.63-5108.88
+  Label 7: 5034.63-5108.89
+
+  Number of good wavelength pixels found in order box: 38332 14801
+  Order 71: 4963.75-5036.92
+  Label 6: 4963.75-5036.93
+
+  Number of good wavelength pixels found in order box: 33049 6536
+  Order 72: 4894.83-4966.96
+  Label 5: 4894.83-4966.97
+
+  Number of good wavelength pixels found in order box: 27583 27583
+  Order 73: No valid wavelengths found
+  Label 4: 4827.80-4898.92
+
+  Number of good wavelength pixels found in order box: 21908 21908
+  Order 74: 4704.58-4768.27
+  Label 3: 4762.58-4832.71
+
+  Number of good wavelength pixels found in order box: 15977 15977
+  Order 75: 4637.28-4705.52
+  Label 2: 4699.09-4768.27
+
+  Number of good wavelength pixels found in order box: 9768 9768
+  Order 76: No valid wavelengths found
+  Label 1: 4637.28-4705.52
+
+  Number of good wavelength pixels found in order box: 2146 2146
+  #+end_example
 
 * COMMENT Test of my new org-bullets configuration. 
 ** Second
