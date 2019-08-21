@@ -8913,120 +8913,257 @@ CLOCK: [2019-08-18 Sun 18:09]--[2019-08-18 Sun 23:01] =>  4:52
 : Number of objects skipped:  0
 : Replacement of bad pixels complete
 
-*** Extract orders for p79
-  #+begin_src sh :results verbatim
-    python hires-extract/extract-orders.py Keck1/p79b-cr Calibration/wav0070 Keck1/t70-orders-final
+#+call: spotless-jets("p80", "Keck1")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from p80-badpix.reg added to bad pixels
+: Number of bad pixels: 121 (0.005% of total)
+: Number of distinct bad pixel objects found: 32
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("p81", "Keck1")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from p81-badpix.reg added to bad pixels
+: Number of bad pixels: 147 (0.006% of total)
+: Number of distinct bad pixel objects found: 35
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("p82", "Keck1")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from p82-badpix.reg added to bad pixels
+: Number of bad pixels: 118 (0.005% of total)
+: Number of distinct bad pixel objects found: 39
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+*** Divide each column by median
+
+#+name: median-rows
+#+header: :var PERCENTILE="50", NPOLY="20"
+#+begin_src python :return figfile :results file
+  import numpy as np
+  from astropy.io import fits
+  from matplotlib import pyplot as plt
+  import seaborn as sns
+
+  PERCENTILE, NPOLY = int(PERCENTILE), int(NPOLY)
+  slits = [
+      "1/p79", "1/p80", "1/p81", "1/p82",
+      "2/j65", "2/j66", "2/j67", "2/j68", "2/j69", "2/j70", "2/j71",
+      "2/jw72", "2/jw73", "2/jw74", 
+      "2/je75", "2/je76", 
+  ]
+
+  medrows = []
+  for slit in slits:
+      fn = f"Keck{slit}b-cr.fits"
+      hdu = fits.open(fn)[0]
+      medrow = np.percentile(hdu.data[600:, :], PERCENTILE, axis=0)
+      medrows.append(medrow/np.mean(medrow))
+
+  med_medrow = np.mean(np.stack(medrows, axis=0), axis=0)
+  icolumns = np.arange(len(med_medrow))
+  m = (med_medrow > 0.75) & (med_medrow < 1.5)
+  p = np.poly1d(np.polyfit(icolumns[m], med_medrow[m], NPOLY))
+  fitted_medrow = p(icolumns)
+
+  fig, ax = plt.subplots(figsize=(6, 3))
+  for slit, medrow in zip(slits, medrows):
+      ax.plot(icolumns, medrow, lw=0.5, alpha=0.3, label=slit)
+  ax.plot(icolumns, fitted_medrow, color="k", label="fit")
+
+  ax.legend(ncol=3, fontsize="xx-small")
+  ax.set(ylim=[0, 2], ylabel="Median row", xlabel="Column number")
+  sns.despine()
+  fig.tight_layout()
+  figfile = f"median-rows-p{PERCENTILE}-n{NPOLY}.pdf"
+  fig.savefig(figfile)
+
+  fits.PrimaryHDU(
+      header=hdu.header,
+      data=np.ones_like(hdu.data)*fitted_medrow[None, :],
+  ).writeto(
+      "Calibration/" + figfile.replace(".pdf", ".fits"),
+      overwrite=True,
+  )
+
+#+end_src
+
+#+RESULTS: median-rows
+[[file:median-rows-p50-n20.pdf]]
+
+#+call: median-rows("30", "20")
+
+#+RESULTS:
+[[file:median-rows-p30-n20.pdf]]
+
+#+call: median-rows("70", "20")
+
+#+RESULTS:
+[[file:median-rows-p70-n20.pdf]]
+
+#+call: median-rows("20", "20")
+
+#+RESULTS:
+[[file:median-rows-p20-n20.pdf]]
+
+#+call: median-rows("30", "15")
+
+#+RESULTS:
+[[file:median-rows-p30-n15.pdf]]
+
+Looks like the PERCENTILE=30 version is best because median (50) and higher start to show the lines, while 20 and lower start to show the dark stain in middle of chip.  We can try 30 and 50. 
+
+Actually, I have now restricted to rows 600 and above, and maybe PERCENTILE=20 is better
+
+
+#+begin_src python :results silent
+  import numpy as np
+  from astropy.io import fits
+  slits = [
+      "1/p79", "1/p80", "1/p81", "1/p82",
+      "2/j65", "2/j66", "2/j67", "2/j68", "2/j69", "2/j70", "2/j71",
+      "2/jw72", "2/jw73", "2/jw74", 
+      "2/je75", "2/je76", 
+  ]
+  mhdu, = fits.open("Calibration/median-rows-p20-n20.fits")
+  for slit in slits:
+      fn = f"Keck{slit}b-cr.fits"
+      hdu = fits.open(fn)[0]
+      # Correct for median row variation
+      hdu.data /= mhdu.data
+      hdu.writeto(fn.replace("-cr.fits", "-crm.fits"), overwrite=True)
+#+end_src
+
+#+begin_src python :results silent
+  import numpy as np
+  from astropy.io import fits
+  slits = [
+      "1/p79", "1/p80", "1/p81", 
+      "2/j65", "2/j66", "2/j67", "2/j69", "2/j70", 
+      "2/jw74", 
+  ]
+  data = None
+  for slit in slits:
+      fn = f"Keck{slit}b-crm.fits"
+      hdu = fits.open(fn)[0]
+      if data is None:
+          data = hdu.data
+      else:
+          data += hdu.data
+  data /= len(slits)
+  fits.PrimaryHDU(header=hdu.header, data=data).writeto(
+      "combined-jet-crm.fits", overwrite=True)
+#+end_src
+
++ Eliminate p82 because spike
++ Eliminate j68, j71, jw72, jw73, jw74, je75, je76 because weak
++ Still, the average doesn't look that great
+*** Extract orders for p79 and other slits
++ Now I have fixed the ~extract-orders.py~ program
++ Only need to do a few orders
+  #+begin_src sh :eval no
+    python hires-extract/extract-orders.py Keck1/p79b-cr Calibration/wav0070 Keck1/t70-orders-final --onlyorders 51 52 53 54 55
   #+end_src
+*** Fit and divide by local continuum
++ This is going to be a lot easier than doing a global calibration
+#+begin_src python :return figfile :results file
+  import json
+  import numpy as np
+  from astropy.io import fits
+  from astropy.modeling import fitting
+  from astropy.modeling.models import Gaussian1D
+  import matplotlib.pyplot as plt
+  import seaborn as sns
 
-  #+RESULTS:
-  #+begin_example
-  Number of order boxes found: 26
-  Number of objects found: 24
-  Order 51: 6909.79-7011.71
-  Label 24: 6909.78-7011.72
+  slits = ["p79", "p80", "p81", "j65", "j66", "j67", "j68", "j69", "j70", "j71"]
 
-  Number of good wavelength pixels found in order box: 77452 16387
-  Order 52: 6776.92-6876.91
-  Label 23: 6776.91-6876.92
+  # dictionary to hold fit results (best-fit values and covariance array)
+  fit_results = {slit: {} for slit in slits}
 
-  Number of good wavelength pixels found in order box: 77445 16386
-  Order 53: 6649.06-6747.20
-  Label 22: 6649.05-6747.21
+  # region to extract along slit
+  jslice = slice(23, 46)
 
-  Number of good wavelength pixels found in order box: 77439 16384
-  Order 54: 6525.95-6622.29
-  Label 21: 6525.94-6622.30
+  # wavelength region to extract (up to He I line)
+  islice = slice(7, 550)
 
-  Number of good wavelength pixels found in order box: 77448 16386
-  Order 55: 6407.31-6501.92
-  Label 20: 6407.30-6501.93
+  # wavelength regions to use for continuum fit
+  continuum_islices = slice(7, 90), slice(92, 220), slice(400, 447), slice(480, 550)
 
-  Number of good wavelength pixels found in order box: 77463 16387
-  Order 56: 6292.91-6385.85
-  Label 19: 6292.90-6385.86
+  # wavelength regions to use for line fit
+  absfit_islices = slice(225, 358), slice(382, 410)
 
-  Number of good wavelength pixels found in order box: 77496 16386
-  Order 57: 6182.53-6273.85
-  Label 18: 6182.52-6273.86
+  # For fitting the absorption line
+  fitter = fitting.LevMarLSQFitter()
 
-  Number of good wavelength pixels found in order box: 77520 16385
-  Order 58: 6075.96-6165.71
-  Label 17: 6075.95-6165.72
+  fig, ax = plt.subplots(figsize=(4, 6))
 
-  Number of good wavelength pixels found in order box: 77560 16386
-  Order 59: 5973.00-6061.23
-  Label 16: 5972.99-6061.24
+  offset = 0.0
+  for slit in slits:
+      fn = f"Extract/{slit}b-cr-order53.fits"
+      hdulist = fits.open(fn)
 
-  Number of good wavelength pixels found in order box: 77605 16387
-  Order 60: 5873.47-5960.23
-  Label 15: 5873.46-5960.24
+      # Take mean over slice along slit length
+      spec = hdulist["SCI"].data[jslice, :].mean(axis=0)
+      wavs = hdulist["WAV"].data[jslice, :].mean(axis=0)
 
-  Number of good wavelength pixels found in order box: 77664 16387
-  Order 61: 5777.21-5862.55
-  Label 14: 5593.85-5862.56
+      # Remove bad columns
+      spec[90:92] = np.nan
+      # Construct clean continuum regions
+      cspec = np.concatenate([spec[_] for _ in continuum_islices])
+      cwavs = np.concatenate([wavs[_] for _ in continuum_islices])
 
-  Number of good wavelength pixels found in order box: 101483 16386
-  Order 62: 5684.05-5768.01
-  Label 14: 5593.85-5862.56
+      # Fit polynomial to continuum
+      p = np.poly1d(np.polyfit(cwavs, cspec, 6))
 
-  Number of good wavelength pixels found in order box: 124510 16386
-  Order 63: 5593.86-5676.47
-  Label 14: 5593.85-5862.56
+      # normalize by continuum fit
+      spec /= p(wavs)
 
-  Number of good wavelength pixels found in order box: 98095 16385
-  Order 64: 5506.48-5587.79
-  Label 13: 5506.47-5587.80
+      # Construct regions for absorption line fitting
+      aspec = np.concatenate([spec[_] for _ in absfit_islices])
+      awavs = np.concatenate([wavs[_] for _ in absfit_islices])
 
-  Number of good wavelength pixels found in order box: 68313 16387
-  Order 65: 5421.79-5501.84
-  Label 12: 5421.78-5501.85
+      # Fit GaussianAbsorption1D to the absorption line
+      g_init = Gaussian1D(amplitude=0.1, mean=6664.0, stddev=1.0)
+      g = fitter(g_init, awavs, 1.0 - aspec)
 
-  Number of good wavelength pixels found in order box: 63342 16387
-  Order 66: 5339.66-5418.49
-  Label 11: 5339.66-5418.50
+      fit_results[slit]["parameters"] = list(g.parameters)
+      fit_results[slit]["param err"] = np.sqrt(np.diag(fitter.fit_info['param_cov'])).tolist()
+      fit_results[slit]["covariance"] = fitter.fit_info["param_cov"].tolist()
 
-  Number of good wavelength pixels found in order box: 58401 16384
-  Order 67: 5259.99-5337.62
-  Label 10: 5259.99-5337.63
+      # Add to plot
+      ax.plot(wavs[islice], spec[islice] + offset, label=slit, lw=0.7)
+      ax.plot(wavs[islice], 1.0 - g(wavs[islice]) + offset,
+	      label="_nolabel_", lw=0.7, color="k")
+      offset += 0.1
 
-  Number of good wavelength pixels found in order box: 53483 16390
-  Order 68: 5182.66-5259.13
-  Label 9: 5182.66-5259.14
+  ax.legend(ncol=2)
+  ax.set(
+      xlabel = "Wavelength, Å",
+      ylabel = "Relative intensity",
+  )
+  sns.despine()
+  fig.tight_layout()
 
-  Number of good wavelength pixels found in order box: 48495 16386
-  Order 69: 5107.58-5182.92
-  Label 8: 5107.58-5182.93
+  figfile = "order51-absorption.pdf"
+  fig.savefig(figfile)
 
-  Number of good wavelength pixels found in order box: 43471 16386
-  Order 70: 5034.63-5108.88
-  Label 7: 5034.63-5108.89
+  with open(figfile.replace(".pdf", ".json"), "w") as f:
+      json.dump(fit_results, f, indent=4)
 
-  Number of good wavelength pixels found in order box: 38332 14801
-  Order 71: 4963.75-5036.92
-  Label 6: 4963.75-5036.93
+#+end_src
 
-  Number of good wavelength pixels found in order box: 33049 6536
-  Order 72: 4894.83-4966.96
-  Label 5: 4894.83-4966.97
-
-  Number of good wavelength pixels found in order box: 27583 27583
-  Order 73: No valid wavelengths found
-  Label 4: 4827.80-4898.92
-
-  Number of good wavelength pixels found in order box: 21908 21908
-  Order 74: 4704.58-4768.27
-  Label 3: 4762.58-4832.71
-
-  Number of good wavelength pixels found in order box: 15977 15977
-  Order 75: 4637.28-4705.52
-  Label 2: 4699.09-4768.27
-
-  Number of good wavelength pixels found in order box: 9768 9768
-  Order 76: No valid wavelengths found
-  Label 1: 4637.28-4705.52
-
-  Number of good wavelength pixels found in order box: 2146 2146
-  #+end_example
+#+RESULTS:
+[[file:order51-absorption.pdf]]
 
 * COMMENT Test of my new org-bullets configuration. 
 ** Second
