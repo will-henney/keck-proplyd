@@ -8886,8 +8886,8 @@ CLOCK: [2019-08-18 Sun 18:09]--[2019-08-18 Sun 23:01] =>  4:52
 : Warning: HDU 'SCI' not found, using the first one instead
 : Finding bad pixels by the 'thresh' method
 : Regions from jw74-badpix.reg added to bad pixels
-: Number of bad pixels: 104 (0.004% of total)
-: Number of distinct bad pixel objects found: 23
+: Number of bad pixels: 107 (0.005% of total)
+: Number of distinct bad pixel objects found: 24
 : Number of objects skipped:  0
 : Replacement of bad pixels complete
 
@@ -8946,6 +8946,8 @@ CLOCK: [2019-08-18 Sun 18:09]--[2019-08-18 Sun 23:01] =>  4:52
 : Number of objects skipped:  0
 : Replacement of bad pixels complete
 *** Divide each column by median
+
+This turned out to be not so useful
 
 #+name: median-rows
 #+header: :var PERCENTILE="50", NPOLY="20"
@@ -9074,6 +9076,7 @@ Actually, I have now restricted to rows 600 and above, and maybe PERCENTILE=20 i
   #+begin_src sh :eval no
     python hires-extract/extract-orders.py Keck1/p79b-cr Calibration/wav0070 Keck1/t70-orders-final --onlyorders 51 52 53 54 55
   #+end_src
++ I have done the same in the terminal for all the other jet slits
 *** Fit and divide by local continuum
 + This is going to be a lot easier than doing a global calibration
 #+begin_src python :return figfile :results file
@@ -9085,13 +9088,15 @@ Actually, I have now restricted to rows 600 and above, and maybe PERCENTILE=20 i
   import matplotlib.pyplot as plt
   import seaborn as sns
 
-  slits = ["p79", "p80", "p81", "j65", "j66", "j67", "j68", "j69", "j70", "j71"]
+  slits = ["p79", "p80", "p81", "p82",
+	   "j65", "j66", "j67", "j68", "j69", "j70", "j71",
+	   "jw72", "jw73", "jw74",
+	   "je75", "je76",
+  ]
 
   # dictionary to hold fit results (best-fit values and covariance array)
   fit_results = {slit: {} for slit in slits}
 
-  # region to extract along slit
-  jslice = slice(23, 46)
 
   # wavelength region to extract (up to He I line)
   islice = slice(7, 550)
@@ -9111,6 +9116,14 @@ Actually, I have now restricted to rows 600 and above, and maybe PERCENTILE=20 i
   for slit in slits:
       fn = f"Extract/{slit}b-cr-order53.fits"
       hdulist = fits.open(fn)
+
+      # region to extract along slit 
+      if slit in ["p79"]:
+	  # Full length of 14 arcsec slits
+	  jslice = slice(12, 49)
+      else:
+	  # Only 23 pixels = 11 arcsec for central portion of 28 arcsec slits
+	  jslice = slice(18, 46)
 
       # Take mean over slice along slit length
       spec = hdulist["SCI"].data[jslice, :].mean(axis=0)
@@ -9136,17 +9149,19 @@ Actually, I have now restricted to rows 600 and above, and maybe PERCENTILE=20 i
       g_init = Gaussian1D(amplitude=0.1, mean=6664.0, stddev=1.0)
       g = fitter(g_init, awavs, 1.0 - aspec)
 
-      fit_results[slit]["parameters"] = list(g.parameters)
-      fit_results[slit]["param err"] = np.sqrt(np.diag(fitter.fit_info['param_cov'])).tolist()
-      fit_results[slit]["covariance"] = fitter.fit_info["param_cov"].tolist()
-
+      try:
+	  fit_results[slit]["parameters"] = list(g.parameters)
+	  fit_results[slit]["param err"] = np.sqrt(np.diag(fitter.fit_info['param_cov'])).tolist()
+	  fit_results[slit]["covariance"] = fitter.fit_info["param_cov"].tolist()
+      except:
+	 pass
       # Add to plot
       ax.plot(wavs[islice], spec[islice] + offset, label=slit, lw=0.7)
       ax.plot(wavs[islice], 1.0 - g(wavs[islice]) + offset,
 	      label="_nolabel_", lw=0.7, color="k")
       offset += 0.1
 
-  ax.legend(ncol=2)
+  ax.legend(ncol=3, fontsize="x-small")
   ax.set(
       xlabel = "Wavelength, Å",
       ylabel = "Relative intensity",
@@ -9164,6 +9179,152 @@ Actually, I have now restricted to rows 600 and above, and maybe PERCENTILE=20 i
 
 #+RESULTS:
 [[file:order51-absorption.pdf]]
+*** Combine the slits by groups
++ Consider similar line profiles and spatial proximity:
+  + A :: Vertical slits
+    + p79
+    + p80
+    + p81
+    + p82 (a bit narrower because of spike)
+  + B :: N central jet
+    + j65
+    + j66
+    + j67 (weaker)
+    + j68 (weaker)
+  + C :: S central jet
+    + j69
+    + j70
+    + j71
+  + D :: W jet
+    + jw72 (very weak)
+    + jw73 (nothing)
+    + jw74 (nothing)
+  + E :: E jet
+    + je75 (nothing)
+    + je76 (nothing)
+
+#+begin_src python :return figfile :results file
+  import json
+  import numpy as np
+  from astropy.io import fits
+  from astropy.modeling import fitting
+  from astropy.modeling.models import Gaussian1D
+  import matplotlib.pyplot as plt
+  import seaborn as sns
+
+
+  slitgroups = {
+      "A": ["p79", "p80", "p81", "p82"],
+      "B": ["j65", "j66", "j67", "j68"],
+      "C": ["j69", "j70", "j71"],
+      "D": ["jw72", "jw73", "jw74"],
+      "E": ["je75", "je76"],
+  }
+  # dictionary to hold fit results (best-fit values and covariance array)
+  fit_results = {group: {} for group in slitgroups}
+
+
+  # wavelength region to extract (up to He I line)
+  islice = slice(121, 550)
+
+  # wavelength regions to use for continuum fit
+  continuum_islices = slice(7, 90), slice(92, 220), slice(380, 447), slice(480, 550)
+
+  # wavelength regions to use for line fit
+  absfit_islices = slice(225, 358), slice(382, 410)
+
+  # For fitting the absorption line
+  fitter = fitting.LevMarLSQFitter()
+
+  fig, ax = plt.subplots(figsize=(4, 6))
+
+  offset = 0.0
+  for group, slits in slitgroups.items():
+      # Find an average spectrum for each group of slits
+      groupwavs = None
+      groupspec = None
+
+      for slit in slits:
+          fn = f"Extract/{slit}b-cr-order53.fits"
+          hdulist = fits.open(fn)
+
+          # region to extract along slit 
+          if slit in ["p79"]:
+              # Full length of 14 arcsec slits
+              jslice = slice(12, 49)
+          else:
+              # Only 23 pixels = 11 arcsec for central portion of 28 arcsec slits
+              jslice = slice(18, 46)
+
+          # Take mean over slice along slit length
+          spec = hdulist["SCI"].data[jslice, :].mean(axis=0)
+          wavs = hdulist["WAV"].data[jslice, :].mean(axis=0)
+
+          # Remove bad columns
+          spec[90:92] = np.nan
+          # Construct clean continuum regions
+          cspec = np.concatenate([spec[_] for _ in continuum_islices])
+          cwavs = np.concatenate([wavs[_] for _ in continuum_islices])
+
+          # Fit polynomial to continuum
+          p = np.poly1d(np.polyfit(cwavs, cspec, 50))
+
+          # normalize by continuum fit
+          spec /= p(wavs)
+
+          # Add in to group
+          if groupwavs is None:
+              groupwavs = wavs
+              groupspec = spec
+          else:
+              groupspec += spec
+
+
+      # Divide by number of contributing slits to get average
+      groupspec /= len(slits)
+
+      # Construct regions for absorption line fitting
+      aspec = np.concatenate([groupspec[_] for _ in absfit_islices])
+      awavs = np.concatenate([groupwavs[_] for _ in absfit_islices])
+
+      # Fit GaussianAbsorption1D to the absorption line
+      g_init = Gaussian1D(amplitude=0.1, mean=6664.0, stddev=1.0)
+      g = fitter(g_init, awavs, 1.0 - aspec)
+
+      fit_results[group]["slits"] = slits
+      fit_results[group]["parameters"] = list(g.parameters)
+      fit_results[group]["param err"] = np.sqrt(np.diag(
+          fitter.fit_info['param_cov'])).tolist()
+      fit_results[group]["covariance"] = fitter.fit_info["param_cov"].tolist()
+      signal_to_noise = fit_results[group]["parameters"][0] / fit_results[group]["param err"][0]
+      fit_results[group]["S/N"] = signal_to_noise
+    
+      # Add to plot
+      ax.plot(groupwavs[islice], groupspec[islice] + offset, label=group, lw=0.7)
+      if signal_to_noise > 5.0:
+          ax.plot(groupwavs[islice], 1.0 - g(groupwavs[islice]) + offset,
+                  label="_nolabel_", lw=0.7, color="k")
+      offset += 0.1
+
+  ax.legend(fontsize="x-small")
+  ax.set(
+      xlabel = "Wavelength, Å",
+      ylabel = "Relative intensity",
+  )
+  sns.despine()
+  fig.tight_layout()
+
+  figfile = "order51-absorption-by-group.pdf"
+  fig.savefig(figfile)
+
+  with open(figfile.replace(".pdf", ".json"), "w") as f:
+      json.dump(fit_results, f, indent=4)
+
+#+end_src
+
+#+RESULTS:
+[[file:order51-absorption-by-group.pdf]]
+
 
 * COMMENT Test of my new org-bullets configuration. 
 ** Second
