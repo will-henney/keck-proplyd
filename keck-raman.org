@@ -1,0 +1,776 @@
+* Raman-scattered absorption lines in Keck spectra
+:LOGBOOK:
+CLOCK: [2019-08-19 Mon 12:01]
+CLOCK: [2019-08-18 Sun 18:09]--[2019-08-18 Sun 23:01] =>  4:52
+:END:
++ Back to this after 5 years
++ Looking at Raman-scattered absorption lines
++ Best in jet spectra
+  + The jXX spectra and some pXX are from 150-353 (base of Orion S)
+  + The jwXX spectra are from 137-349
+  + Also jeXX from 163-357 but these don't have the line very strong
+** Extracting continuum to red of H\alpha
++ I want to look at the Raman-scattered wing and the FUV absorption line that is mapped to 6662 \AA
++ Start with slit p79, which is the only jet pointing with the shorter slit
+  + Then we can carry on with central portions of p80, p81, and j65 \to j71
+** Stages for jet slits
+*** Cosmetic defects for jet slits
+- already done I think
+*** Cosmic rays for jet slits
+- I am not very happy with my spotless program, but I will try it
+- First attempt was overzealous - now I am going to use the badpix file only
+  - I have just done the orders around Ha for now
+- Now to do all the others
+
+#+name: spotless-jets
+#+header: :var OBJ="p79" DIR="Keck1"
+#+BEGIN_SRC sh :results verbatim
+  cd $DIR
+  COMMON_PARS="--output-id cr --multi-hdu --verbose --debug \
+      --method thresh --threshold 1e6 --allow-shadows"
+  SPOTLESS="$HOME/Dropbox/spotless/spotless"
+  $SPOTLESS ${OBJ}b $COMMON_PARS --include-regions-from-file ${OBJ}-badpix.reg
+#+END_SRC
+
+#+RESULTS: spotless-jets
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from p79-badpix.reg added to bad pixels
+: Number of bad pixels: 395 (0.017% of total)
+: Number of distinct bad pixel objects found: 113
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("j65", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from j65-badpix.reg added to bad pixels
+: Number of bad pixels: 31 (0.001% of total)
+: Number of distinct bad pixel objects found: 10
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("j66", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from j66-badpix.reg added to bad pixels
+: Number of bad pixels: 101 (0.004% of total)
+: Number of distinct bad pixel objects found: 24
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("j67", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from j67-badpix.reg added to bad pixels
+: Number of bad pixels: 80 (0.003% of total)
+: Number of distinct bad pixel objects found: 23
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("j68", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from j68-badpix.reg added to bad pixels
+: Number of bad pixels: 78 (0.003% of total)
+: Number of distinct bad pixel objects found: 17
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("j69", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from j69-badpix.reg added to bad pixels
+: Number of bad pixels: 41 (0.002% of total)
+: Number of distinct bad pixel objects found: 11
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from j70-badpix.reg added to bad pixels
+: Number of bad pixels: 80 (0.003% of total)
+: Number of distinct bad pixel objects found: 20
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("j70", "Keck2")
+
+#+call: spotless-jets("j71", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from j71-badpix.reg added to bad pixels
+: Number of bad pixels: 95 (0.004% of total)
+: Number of distinct bad pixel objects found: 28
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("jw72", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from jw72-badpix.reg added to bad pixels
+: Number of bad pixels: 92 (0.004% of total)
+: Number of distinct bad pixel objects found: 25
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("jw73", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from jw73-badpix.reg added to bad pixels
+: Number of bad pixels: 123 (0.005% of total)
+: Number of distinct bad pixel objects found: 29
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("jw74", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from jw74-badpix.reg added to bad pixels
+: Number of bad pixels: 107 (0.005% of total)
+: Number of distinct bad pixel objects found: 24
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("je75", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from je75-badpix.reg added to bad pixels
+: Number of bad pixels: 40 (0.002% of total)
+: Number of distinct bad pixel objects found: 14
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("je76", "Keck2")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from je76-badpix.reg added to bad pixels
+: Number of bad pixels: 127 (0.005% of total)
+: Number of distinct bad pixel objects found: 30
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("p80", "Keck1")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from p80-badpix.reg added to bad pixels
+: Number of bad pixels: 121 (0.005% of total)
+: Number of distinct bad pixel objects found: 32
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("p81", "Keck1")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from p81-badpix.reg added to bad pixels
+: Number of bad pixels: 147 (0.006% of total)
+: Number of distinct bad pixel objects found: 35
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+
+#+call: spotless-jets("p82", "Keck1")
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'thresh' method
+: Regions from p82-badpix.reg added to bad pixels
+: Number of bad pixels: 118 (0.005% of total)
+: Number of distinct bad pixel objects found: 39
+: Number of objects skipped:  0
+: Replacement of bad pixels complete
+*** Divide each column by median
+
+This turned out to be not so useful
+
+#+name: median-rows
+#+header: :var PERCENTILE="50", NPOLY="20"
+#+begin_src python :return figfile :results file
+  import numpy as np
+  from astropy.io import fits
+  from matplotlib import pyplot as plt
+  import seaborn as sns
+
+  PERCENTILE, NPOLY = int(PERCENTILE), int(NPOLY)
+  slits = [
+      "1/p79", "1/p80", "1/p81", "1/p82",
+      "2/j65", "2/j66", "2/j67", "2/j68", "2/j69", "2/j70", "2/j71",
+      "2/jw72", "2/jw73", "2/jw74", 
+      "2/je75", "2/je76", 
+  ]
+
+  medrows = []
+  for slit in slits:
+      fn = f"Keck{slit}b-cr.fits"
+      hdu = fits.open(fn)[0]
+      medrow = np.percentile(hdu.data[600:, :], PERCENTILE, axis=0)
+      medrows.append(medrow/np.mean(medrow))
+
+  med_medrow = np.mean(np.stack(medrows, axis=0), axis=0)
+  icolumns = np.arange(len(med_medrow))
+  m = (med_medrow > 0.75) & (med_medrow < 1.5)
+  p = np.poly1d(np.polyfit(icolumns[m], med_medrow[m], NPOLY))
+  fitted_medrow = p(icolumns)
+
+  fig, ax = plt.subplots(figsize=(6, 3))
+  for slit, medrow in zip(slits, medrows):
+      ax.plot(icolumns, medrow, lw=0.5, alpha=0.3, label=slit)
+  ax.plot(icolumns, fitted_medrow, color="k", label="fit")
+
+  ax.legend(ncol=3, fontsize="xx-small")
+  ax.set(ylim=[0, 2], ylabel="Median row", xlabel="Column number")
+  sns.despine()
+  fig.tight_layout()
+  figfile = f"median-rows-p{PERCENTILE}-n{NPOLY}.pdf"
+  fig.savefig(figfile)
+
+  fits.PrimaryHDU(
+      header=hdu.header,
+      data=np.ones_like(hdu.data)*fitted_medrow[None, :],
+  ).writeto(
+      "Calibration/" + figfile.replace(".pdf", ".fits"),
+      overwrite=True,
+  )
+
+#+end_src
+
+#+RESULTS: median-rows
+[[file:median-rows-p50-n20.pdf]]
+
+#+call: median-rows("30", "20")
+
+#+RESULTS:
+[[file:median-rows-p30-n20.pdf]]
+
+#+call: median-rows("70", "20")
+
+#+RESULTS:
+[[file:median-rows-p70-n20.pdf]]
+
+#+call: median-rows("20", "20")
+
+#+RESULTS:
+[[file:median-rows-p20-n20.pdf]]
+
+#+call: median-rows("30", "15")
+
+#+RESULTS:
+[[file:median-rows-p30-n15.pdf]]
+
+Looks like the PERCENTILE=30 version is best because median (50) and higher start to show the lines, while 20 and lower start to show the dark stain in middle of chip.  We can try 30 and 50. 
+
+Actually, I have now restricted to rows 600 and above, and maybe PERCENTILE=20 is better
+
+
+#+begin_src python :results silent
+  import numpy as np
+  from astropy.io import fits
+  slits = [
+      "1/p79", "1/p80", "1/p81", "1/p82",
+      "2/j65", "2/j66", "2/j67", "2/j68", "2/j69", "2/j70", "2/j71",
+      "2/jw72", "2/jw73", "2/jw74", 
+      "2/je75", "2/je76", 
+  ]
+  mhdu, = fits.open("Calibration/median-rows-p20-n20.fits")
+  for slit in slits:
+      fn = f"Keck{slit}b-cr.fits"
+      hdu = fits.open(fn)[0]
+      # Correct for median row variation
+      hdu.data /= mhdu.data
+      hdu.writeto(fn.replace("-cr.fits", "-crm.fits"), overwrite=True)
+#+end_src
+
+#+begin_src python :results silent
+  import numpy as np
+  from astropy.io import fits
+  slits = [
+      "1/p79", "1/p80", "1/p81", 
+      "2/j65", "2/j66", "2/j67", "2/j69", "2/j70", 
+      "2/jw74", 
+  ]
+  data = None
+  for slit in slits:
+      fn = f"Keck{slit}b-crm.fits"
+      hdu = fits.open(fn)[0]
+      if data is None:
+          data = hdu.data
+      else:
+          data += hdu.data
+  data /= len(slits)
+  fits.PrimaryHDU(header=hdu.header, data=data).writeto(
+      "combined-jet-crm.fits", overwrite=True)
+#+end_src
+
++ Eliminate p82 because spike
++ Eliminate j68, j71, jw72, jw73, jw74, je75, je76 because weak
++ Still, the average doesn't look that great
+*** Extract orders for p79 and other slits
++ Now I have fixed the ~extract-orders.py~ program
++ Only need to do a few orders
+  #+begin_src sh :eval no
+    python hires-extract/extract-orders.py Keck1/p79b-cr Calibration/wav0070 Keck1/t70-orders-final --onlyorders 51 52 53 54 55
+  #+end_src
++ I have done the same in the terminal for all the other jet slits
+*** Fit and divide by local continuum
++ This is going to be a lot easier than doing a global calibration
+#+begin_src python :return figfile :results file
+  import json
+  import numpy as np
+  from astropy.io import fits
+  from astropy.modeling import fitting
+  from astropy.modeling.models import Gaussian1D
+  import matplotlib.pyplot as plt
+  import seaborn as sns
+
+  slits = ["p79", "p80", "p81", "p82",
+	   "j65", "j66", "j67", "j68", "j69", "j70", "j71",
+	   "jw72", "jw73", "jw74",
+	   "je75", "je76",
+  ]
+
+  # dictionary to hold fit results (best-fit values and covariance array)
+  fit_results = {slit: {} for slit in slits}
+
+
+  # wavelength region to extract (up to He I line)
+  islice = slice(7, 550)
+
+  # wavelength regions to use for continuum fit
+  continuum_islices = slice(7, 90), slice(92, 220), slice(400, 447), slice(480, 550)
+
+  # wavelength regions to use for line fit
+  absfit_islices = slice(225, 358), slice(382, 410)
+
+  # For fitting the absorption line
+  fitter = fitting.LevMarLSQFitter()
+
+  fig, ax = plt.subplots(figsize=(4, 6))
+
+  offset = 0.0
+  for slit in slits:
+      fn = f"Extract/{slit}b-cr-order53.fits"
+      hdulist = fits.open(fn)
+
+      # region to extract along slit 
+      if slit in ["p79"]:
+	  # Full length of 14 arcsec slits
+	  jslice = slice(12, 49)
+      else:
+	  # Only 23 pixels = 11 arcsec for central portion of 28 arcsec slits
+	  jslice = slice(18, 46)
+
+      # Take mean over slice along slit length
+      spec = hdulist["SCI"].data[jslice, :].mean(axis=0)
+      wavs = hdulist["WAV"].data[jslice, :].mean(axis=0)
+
+      # Remove bad columns
+      spec[90:92] = np.nan
+      # Construct clean continuum regions
+      cspec = np.concatenate([spec[_] for _ in continuum_islices])
+      cwavs = np.concatenate([wavs[_] for _ in continuum_islices])
+
+      # Fit polynomial to continuum
+      p = np.poly1d(np.polyfit(cwavs, cspec, 6))
+
+      # normalize by continuum fit
+      spec /= p(wavs)
+
+      # Construct regions for absorption line fitting
+      aspec = np.concatenate([spec[_] for _ in absfit_islices])
+      awavs = np.concatenate([wavs[_] for _ in absfit_islices])
+
+      # Fit GaussianAbsorption1D to the absorption line
+      g_init = Gaussian1D(amplitude=0.1, mean=6664.0, stddev=1.0)
+      g = fitter(g_init, awavs, 1.0 - aspec)
+
+      try:
+	  fit_results[slit]["parameters"] = list(g.parameters)
+	  fit_results[slit]["param err"] = np.sqrt(np.diag(fitter.fit_info['param_cov'])).tolist()
+	  fit_results[slit]["covariance"] = fitter.fit_info["param_cov"].tolist()
+      except:
+	 pass
+      # Add to plot
+      ax.plot(wavs[islice], spec[islice] + offset, label=slit, lw=0.7)
+      ax.plot(wavs[islice], 1.0 - g(wavs[islice]) + offset,
+	      label="_nolabel_", lw=0.7, color="k")
+      offset += 0.1
+
+  ax.legend(ncol=3, fontsize="x-small")
+  ax.set(
+      xlabel = "Wavelength, Å",
+      ylabel = "Relative intensity",
+  )
+  sns.despine()
+  fig.tight_layout()
+
+  figfile = "order51-absorption.pdf"
+  fig.savefig(figfile)
+
+  with open(figfile.replace(".pdf", ".json"), "w") as f:
+      json.dump(fit_results, f, indent=4)
+
+#+end_src
+
+#+RESULTS:
+[[file:order51-absorption.pdf]]
+*** Combine the slits by groups
++ Consider similar line profiles and spatial proximity:
+  + A :: Vertical slits
+    + p79
+    + p80
+    + p81
+    + p82 (a bit narrower because of spike)
+  + B :: N central jet
+    + j65
+    + j66
+    + j67 (weaker)
+    + j68 (weaker)
+  + C :: S central jet
+    + j69
+    + j70
+    + j71
+  + D :: W jet
+    + jw72 (very weak)
+    + jw73 (nothing)
+    + jw74 (nothing)
+  + E :: E jet
+    + je75 (nothing)
+    + je76 (nothing)
+
+#+begin_src python :return figfile :results file :tangle order51-absorption-by-group.py
+  import json
+  import numpy as np
+  from astropy.io import fits
+  from astropy.modeling import fitting
+  from astropy.modeling.models import Gaussian1D
+  import matplotlib.pyplot as plt
+  import seaborn as sns
+
+
+  slitgroups = {
+      "A": ["p79", "p80", "p81", "p82"],
+      "B": ["j65", "j66", "j67", "j68"],
+      "C": ["j69", "j70", "j71"],
+      "D": ["jw72", "jw73", "jw74"],
+      "E": ["je75", "je76"],
+  }
+  # dictionary to hold fit results (best-fit values and covariance array)
+  fit_results = {group: {} for group in slitgroups}
+
+
+  # wavelength region to extract (up to He I line)
+  islice = slice(121, 550)
+
+  # wavelength regions to use for continuum fit
+  continuum_islices = slice(7, 90), slice(92, 220), slice(380, 447), slice(480, 550)
+
+  # wavelength regions to use for line fit
+  absfit_islices = slice(225, 358), slice(382, 410)
+
+  # Heliocentric velocity of OMC
+  vel_omc = +9.0 + 19.1
+
+  # Heliocentric correction
+  helio_topo_correction = {
+      "A": -4.0,
+      "B": -3.49,
+      "C": -3.45,
+      "D": -3.41,
+      "E": -3.39,
+  }
+
+  light_speed = 2.99792458e5 
+
+
+  # For fitting the absorption line
+  fitter = fitting.LevMarLSQFitter()
+
+  fig, ax = plt.subplots(figsize=(6, 4))
+
+  offset = 0.0
+  for group, slits in slitgroups.items():
+      # Find an average spectrum for each group of slits
+      groupwavs = None
+      groupspec = None
+
+      for slit in slits:
+          fn = f"Extract/{slit}b-cr-order53.fits"
+          hdulist = fits.open(fn)
+
+          # region to extract along slit 
+          if slit in ["p79"]:
+              # Full length of 14 arcsec slits
+              jslice = slice(12, 49)
+          else:
+              # Only 23 pixels = 11 arcsec for central portion of 28 arcsec slits
+              jslice = slice(18, 46)
+
+          # Take mean over slice along slit length
+          spec = hdulist["SCI"].data[jslice, :].mean(axis=0)
+          wavs = hdulist["WAV"].data[jslice, :].mean(axis=0)
+
+          # Remove bad columns
+          spec[90:92] = np.nan
+          # Construct clean continuum regions
+          cspec = np.concatenate([spec[_] for _ in continuum_islices])
+          cwavs = np.concatenate([wavs[_] for _ in continuum_islices])
+
+          # Fit polynomial to continuum
+          p = np.poly1d(np.polyfit(cwavs, cspec, 50))
+
+          # normalize by continuum fit
+          spec /= p(wavs)
+
+          # Add in to group
+          if groupwavs is None:
+              groupwavs = wavs
+              groupspec = spec
+          else:
+              groupspec += spec
+
+
+      # Divide by number of contributing slits to get average
+      groupspec /= len(slits)
+
+      # Put wavelengths in frame of OMC
+      groupwavs *= (1.0  - (vel_omc + helio_topo_correction[group])/light_speed)
+
+      # Construct regions for absorption line fitting
+      aspec = np.concatenate([groupspec[_] for _ in absfit_islices])
+      awavs = np.concatenate([groupwavs[_] for _ in absfit_islices])
+
+      # Fit GaussianAbsorption1D to the absorption line
+      g_init = Gaussian1D(amplitude=0.1, mean=6664.0, stddev=1.0)
+      g = fitter(g_init, awavs, 1.0 - aspec)
+
+      fit_results[group]["slits"] = slits
+      fit_results[group]["parameters"] = list(g.parameters)
+      fit_results[group]["param err"] = np.sqrt(np.diag(
+          fitter.fit_info['param_cov'])).tolist()
+      fit_results[group]["covariance"] = fitter.fit_info["param_cov"].tolist()
+      signal_to_noise = fit_results[group]["parameters"][0] / fit_results[group]["param err"][0]
+      fit_results[group]["S/N"] = signal_to_noise
+
+      # Add to plot
+      ax.plot(groupwavs[islice], groupspec[islice] + offset, label=group, lw=0.7)
+      if signal_to_noise > 5.0:
+          ax.plot(groupwavs[islice], 1.0 - g(groupwavs[islice]) + offset,
+                  label="_nolabel_", lw=0.7, color="k")
+      ax.axhline(1.0 + offset, 0.03, 0.97, color="k", lw=0.2)
+      ax.annotate(group, (groupwavs[islice][-1], 1.0 + offset), xytext=(8, 0), textcoords="offset points", ha="left", va="center")
+      offset += 0.1
+
+
+  ni2_vels = np.array([-20.0, -10.0, 0.0, 10.0, 20.0])
+  ni2_wavs = 6666.80 * (1.0 + ni2_vels/light_speed)
+  ni2_y0 = 1.9
+  annot_kwds = dict(textcoords="offset points", fontsize=6)
+  ax.plot(ni2_wavs, [ni2_y0]*5, "k|", ms=3)
+  ax.plot(ni2_wavs, [ni2_y0]*5, "k-", lw=0.4)
+  ax.axvline(ni2_wavs[2], 0.25, 0.9, color="k", lw=0.2)
+  ax.annotate("$-20$", (ni2_wavs[0], ni2_y0), xytext=(2, 4), ha="right", **annot_kwds)
+  ax.annotate("$0$", (ni2_wavs[2], ni2_y0), xytext=(0, 4), ha="center", **annot_kwds)
+  ax.annotate("$20$ km/s", (ni2_wavs[-1], ni2_y0), xytext=(-2, 4), ha="left", **annot_kwds)
+  ax.annotate("[Ni Ⅱ] 6666.8 Å", (ni2_wavs[2], ni2_y0), xytext=(0, 12), ha="center", **annot_kwds)
+
+  ax.annotate("[N Ⅱ] 6548 Å\nInter-order bleed", (6671.5, 1.6), xytext=(0, 4), ha="center", **annot_kwds)
+
+  o1_vels = np.array([-20.0, -10.0, 0.0, 10, 20.0])
+  o1_wavs = 6663.7473 * (1.0 + 6.3999329*o1_vels/light_speed)
+  o1_y0 = 0.85
+  annot_kwds = dict(textcoords="offset points", fontsize=7, va="top")
+  ax.plot(o1_wavs, [o1_y0]*5, "k|", ms=3)
+  ax.plot(o1_wavs, [o1_y0]*5, "k-", lw=0.4)
+  ax.axvline(o1_wavs[2], 0.19, 0.65, color="k", lw=0.2)
+  ax.annotate("$-20$", (o1_wavs[0], o1_y0), xytext=(4, -6), ha="right", **annot_kwds)
+  ax.annotate("$0$", (o1_wavs[2], o1_y0), xytext=(0, -6), ha="center", **annot_kwds)
+  ax.annotate("$20$ km/s", (o1_wavs[-1], o1_y0), xytext=(-4, -6), ha="left", **annot_kwds)
+  ax.annotate("O Ⅰ ${}^{3}P_{0} \\to {}^{3}D_{1}$ 1028.1571 Å\nRaman-scattered Lyβ → Hα", (o1_wavs[2], o1_y0), xytext=(0, -16), ha="center", **annot_kwds)
+
+  # ax.legend(fontsize="x-small")
+  ax.set(
+      xlabel = "STP wavelength, Å (OMC frame)",
+      ylabel = "Relative intensity",
+      ylim=[0.55, 2.05],
+  )
+  ax.minorticks_on()
+  sns.despine()
+  fig.tight_layout()
+
+  figfile = "order51-absorption-by-group.pdf"
+  fig.savefig(figfile)
+
+  with open(figfile.replace(".pdf", ".json"), "w") as f:
+      json.dump(fit_results, f, indent=4)
+
+#+end_src
+
+#+RESULTS:
+[[file:]]
+*** Velocity frames for emitted and scattered lines
++ From the 12CO and 13CO maps, the velocity is consistent for the Orion S region
+  + For slit groups A and B it is about +8.0 km/s LSR (\pm 0.2)
+    + This is 27 km/s heliocentric
+  + We should use this as the zero point for the velocities
+  + Line width is 2.1 km/s for 12CO versus 1.5 km/s for 13CO
++ The [Ni II] 6667 line looks like it is fluorescent, so should have same velocity as [O I] and [N I] lines
+  + It is a resonance line
+  + Data from NIST
+    + Wav: 6666.80
+      + If accuracy is 0.01 \AA \to 0.5 km/s
+    + Type: E2
+    + Lower level: 3d9 2D 5/2 (E=0 cm^-1)
+    + Upper level: 3d8.(3F).4s 2F 5/2 (E= 14995.57 cm^-1)
++ Heliocentric correction is -4 km/s
+  + This means earth is moving towards object
+  + So, we subtract -4 from the topocentric velocities to get heliocentric
+**** Find heliocentric correction more precisely
++ This is modified from a similar program I wrote for the Turtle project
+  + [[file:~/Dropbox/Teresa-Turtle/doc/teresa-turtle.org][file:~/Dropbox/Teresa-Turtle/doc/teresa-turtle.org]]
+#+BEGIN_SRC python :return outtab :tangle keck-heliocorr-info.py
+  import sys
+  import os
+  import glob
+  from astropy.io import fits
+  import astropy.coordinates as coord
+  from astropy.wcs import WCS
+  from astropy.time import Time
+  import astropy.units as u
+  sys.path.append('/Users/will/Dropbox/OrionWest')
+  from helio_utils import helio_topo_from_header
+
+  outtab = [['File', 'Date', 'JD', 'ST', 'RA', 'Dec', 'Helio', 'Helio2'], None]
+  speclist = glob.glob('Keck?/[jp]*[5-8][0-9].fits')
+  location = coord.EarthLocation.of_site("Keck Observatory")
+  for fn in sorted(speclist):
+      hdr = fits.open(fn)[0].header
+      w = WCS(hdr)
+      ra, dec, st = hdr.get("RA"), hdr.get("DEC"), hdr.get('ST')
+      time = Time(f"{w.wcs.dateobs} {st}")
+      c = coord.SkyCoord(
+          ra=ra, dec=dec, unit=(u.hourangle, u.deg),
+          obstime=time, 
+      )
+      heliocorr = c.radial_velocity_correction('barycentric', location=location)
+      heliocorr2 = helio_topo_from_header(hdr)
+      id_, _ = os.path.splitext(fn)
+      outtab.append([id_, time.iso.split()[0],
+                     f"{time.mjd:.3f}",
+                     hdr.get('ST'), ra, dec,
+                     '{:.2f}'.format(heliocorr.to(u.km/u.s).value),
+                     '{:.2f}'.format(heliocorr2),
+      ])
+#+END_SRC
+
+#+RESULTS:
+| File       |       Date |        JD |          ST |          RA |         Dec | Helio | Helio2 |
+|------------+------------+-----------+-------------+-------------+-------------+-------+--------|
+| Keck1/p71  | 1997-12-05 | 50787.205 | 04:54:45.57 | 05:35:16.90 | -05:23:37.0 |  4.74 |  -4.28 |
+| Keck1/p72  | 1997-12-05 | 50787.207 | 04:58:05.76 | 05:35:16.88 | -05:23:37.2 |  4.74 |  -4.28 |
+| Keck1/p73  | 1997-12-05 | 50787.221 | 05:18:34.12 | 05:35:16.70 | -05:23:37.5 |  4.73 |  -4.23 |
+| Keck1/p74  | 1997-12-05 | 50787.235 | 05:38:35.19 | 05:35:16.55 | -05:23:37.1 |  4.72 |  -4.19 |
+| Keck1/p75  | 1997-12-05 | 50787.249 | 05:59:04.97 | 05:35:17.77 | -05:23:37.3 |  4.71 |  -4.15 |
+| Keck1/p76  | 1997-12-05 | 50787.261 | 06:15:45.11 | 05:35:17.40 | -05:23:36.1 |  4.70 |  -4.12 |
+| Keck1/p77  | 1997-12-05 | 50787.275 | 06:35:22.32 | 05:35:18.17 | -05:24:12.7 |  4.68 |  -4.08 |
+| Keck1/p78  | 1997-12-05 | 50787.287 | 06:53:16.58 | 05:35:18.07 | -05:24:13.6 |  4.66 |  -4.04 |
+| Keck1/p79  | 1997-12-05 | 50787.294 | 07:03:23.30 | 05:35:15.01 | -05:23:53.2 |  4.64 |  -4.02 |
+| Keck1/p80  | 1997-12-05 | 50787.299 | 07:10:18.07 | 05:35:15.01 | -05:23:53.2 |  4.63 |  -4.01 |
+| Keck1/p81  | 1997-12-05 | 50787.306 | 07:19:59.78 | 05:35:15.01 | -05:23:52.2 |  4.62 |  -3.99 |
+| Keck1/p82  | 1997-12-05 | 50787.310 | 07:26:37.69 | 05:35:15.01 | -05:23:54.2 |  4.61 |  -3.98 |
+| Keck1/p83  | 1997-12-05 | 50787.316 | 07:35:29.74 | 05:35:24.42 | -05:24:41.4 |  4.61 |  -3.98 |
+| Keck1/p84  | 1997-12-05 | 50787.324 | 07:46:15.90 | 05:35:24.42 | -05:24:41.4 |  4.60 |  -3.96 |
+| Keck1/p85  | 1997-12-05 | 50787.332 | 07:58:21.80 | 05:35:24.42 | -05:24:41.4 |  4.58 |  -3.94 |
+| Keck1/p86  | 1997-12-05 | 50787.347 | 08:19:13.32 | 05:35:18.28 | -05:24:14.8 |  4.53 |  -3.89 |
+| Keck1/p87  | 1997-12-05 | 50787.351 | 08:26:04.58 | 05:35:18.29 | -05:24:15.0 |  4.51 |  -3.88 |
+| Keck2/j65  | 1997-12-06 | 50788.313 | 07:31:26.29 | 05:35:15.01 | -05:23:53.2 |  4.14 |  -3.51 |
+| Keck2/j66  | 1997-12-06 | 50788.318 | 07:38:04.69 | 05:35:15.01 | -05:23:52.2 |  4.13 |  -3.50 |
+| Keck2/j67  | 1997-12-06 | 50788.323 | 07:44:41.38 | 05:35:15.01 | -05:23:51.2 |  4.12 |  -3.49 |
+| Keck2/j68  | 1997-12-06 | 50788.327 | 07:51:18.67 | 05:35:15.01 | -05:23:50.2 |  4.10 |  -3.47 |
+| Keck2/j69  | 1997-12-06 | 50788.332 | 07:57:53.65 | 05:35:15.01 | -05:23:54.2 |  4.09 |  -3.46 |
+| Keck2/j70  | 1997-12-06 | 50788.336 | 08:04:32.34 | 05:35:15.01 | -05:23:55.2 |  4.08 |  -3.45 |
+| Keck2/j71  | 1997-12-06 | 50788.341 | 08:11:12.75 | 05:35:15.01 | -05:23:56.2 |  4.07 |  -3.44 |
+| Keck2/je75 | 1997-12-06 | 50788.364 | 08:43:35.77 | 05:35:16.31 | -05:23:57.5 |  4.01 |  -3.39 |
+| Keck2/je76 | 1997-12-06 | 50788.368 | 08:50:15.68 | 05:35:16.31 | -05:23:54.5 |  4.00 |  -3.38 |
+| Keck2/jw72 | 1997-12-06 | 50788.349 | 08:21:56.99 | 05:35:13.70 | -05:23:53.2 |  4.05 |  -3.42 |
+| Keck2/jw73 | 1997-12-06 | 50788.353 | 08:28:34.62 | 05:35:13.70 | -05:23:50.2 |  4.04 |  -3.41 |
+| Keck2/jw74 | 1997-12-06 | 50788.358 | 08:35:21.31 | 05:35:13.70 | -05:23:56.2 |  4.02 |  -3.40 |
+| Keck2/p56  | 1997-12-06 | 50788.263 | 06:18:10.34 | 05:35:16.97 | -05:23:37.2 |  4.23 |  -3.66 |
+| Keck2/p57  | 1997-12-06 | 50788.268 | 06:25:48.31 | 05:35:16.92 | -05:23:36.3 |  4.22 |  -3.64 |
+| Keck2/p58  | 1997-12-06 | 50788.273 | 06:32:28.51 | 05:35:16.87 | -05:23:36.8 |  4.22 |  -3.63 |
+| Keck2/p59  | 1997-12-06 | 50788.278 | 06:39:51.71 | 05:35:17.65 | -05:23:41.0 |  4.21 |  -3.61 |
+| Keck2/p60  | 1997-12-06 | 50788.283 | 06:47:29.76 | 05:35:17.59 | -05:23:40.1 |  4.20 |  -3.60 |
+| Keck2/p61  | 1997-12-06 | 50788.289 | 06:55:32.61 | 05:35:18.16 | -05:24:13.3 |  4.19 |  -3.58 |
+| Keck2/p62  | 1997-12-06 | 50788.294 | 07:03:09.59 | 05:35:18.13 | -05:24:12.8 |  4.18 |  -3.57 |
+| Keck2/p63  | 1997-12-06 | 50788.300 | 07:11:32.89 | 05:35:24.33 | -05:24:40.3 |  4.18 |  -3.57 |
+| Keck2/p64  | 1997-12-06 | 50788.306 | 07:20:55.44 | 05:35:24.33 | -05:24:40.3 |  4.17 |  -3.55 |
+**** Divide by slit groups
+
+***** "A": ["p79", "p80", "p81", "p82"],
+|-----------+------------+-----------+-------------+-------------+-------------+------+-------|
+| Keck1/p79 | 1997-12-05 | 50787.294 | 07:03:23.30 | 05:35:15.01 | -05:23:53.2 | 4.64 | -4.02 |
+| Keck1/p80 | 1997-12-05 | 50787.299 | 07:10:18.07 | 05:35:15.01 | -05:23:53.2 | 4.63 | -4.01 |
+| Keck1/p81 | 1997-12-05 | 50787.306 | 07:19:59.78 | 05:35:15.01 | -05:23:52.2 | 4.62 | -3.99 |
+| Keck1/p82 | 1997-12-05 | 50787.310 | 07:26:37.69 | 05:35:15.01 | -05:23:54.2 | 4.61 | -3.98 |
+|-----------+------------+-----------+-------------+-------------+-------------+------+-------|
+|           |            |           |             |             |             | 4.63 | -4.00 |
+#+TBLFM: @5$7..@5$8=vmean(@I..@II);f2
+***** "B": ["j65", "j66", "j67", "j68"],
+|-----------+------------+-----------+-------------+-------------+-------------+------+-------|
+| Keck2/j65 | 1997-12-06 | 50788.313 | 07:31:26.29 | 05:35:15.01 | -05:23:53.2 | 4.14 | -3.51 |
+| Keck2/j66 | 1997-12-06 | 50788.318 | 07:38:04.69 | 05:35:15.01 | -05:23:52.2 | 4.13 | -3.50 |
+| Keck2/j67 | 1997-12-06 | 50788.323 | 07:44:41.38 | 05:35:15.01 | -05:23:51.2 | 4.12 | -3.49 |
+| Keck2/j68 | 1997-12-06 | 50788.327 | 07:51:18.67 | 05:35:15.01 | -05:23:50.2 | 4.10 | -3.47 |
+|-----------+------------+-----------+-------------+-------------+-------------+------+-------|
+|           |            |           |             |             |             | 4.12 | -3.49 |
+#+TBLFM: @5$7..@5$8=vmean(@I..@II);f2
+
+***** "C": ["j69", "j70", "j71"],
+|-----------+------------+-----------+-------------+-------------+-------------+------+-------|
+| Keck2/j69 | 1997-12-06 | 50788.332 | 07:57:53.65 | 05:35:15.01 | -05:23:54.2 | 4.09 | -3.46 |
+| Keck2/j70 | 1997-12-06 | 50788.336 | 08:04:32.34 | 05:35:15.01 | -05:23:55.2 | 4.08 | -3.45 |
+| Keck2/j71 | 1997-12-06 | 50788.341 | 08:11:12.75 | 05:35:15.01 | -05:23:56.2 | 4.07 | -3.44 |
+|-----------+------------+-----------+-------------+-------------+-------------+------+-------|
+|           |            |           |             |             |             | 4.08 | -3.45 |
+#+TBLFM: @4$7..@4$8=vmean(@I..@II);f2
+
+***** "D": ["jw72", "jw73", "jw74"],
+|------------+------------+-----------+-------------+-------------+-------------+------+-------|
+| Keck2/jw72 | 1997-12-06 | 50788.349 | 08:21:56.99 | 05:35:13.70 | -05:23:53.2 | 4.05 | -3.42 |
+| Keck2/jw73 | 1997-12-06 | 50788.353 | 08:28:34.62 | 05:35:13.70 | -05:23:50.2 | 4.04 | -3.41 |
+| Keck2/jw74 | 1997-12-06 | 50788.358 | 08:35:21.31 | 05:35:13.70 | -05:23:56.2 | 4.02 | -3.40 |
+|------------+------------+-----------+-------------+-------------+-------------+------+-------|
+|            |            |           |             |             |             | 4.04 | -3.41 |
+#+TBLFM: @4$7..@4$8=vmean(@I..@II);f2
+***** "E": ["je75", "je76"],
+|------------+------------+-----------+-------------+-------------+-------------+------+-------|
+| Keck2/je75 | 1997-12-06 | 50788.364 | 08:43:35.77 | 05:35:16.31 | -05:23:57.5 | 4.01 | -3.39 |
+| Keck2/je76 | 1997-12-06 | 50788.368 | 08:50:15.68 | 05:35:16.31 | -05:23:54.5 | 4.00 | -3.38 |
+|------------+------------+-----------+-------------+-------------+-------------+------+-------|
+|            |            |           |             |             |             | 4.01 | -3.39 |
+#+TBLFM: @3$7..@3$8=vmean(@I..@II);f2
