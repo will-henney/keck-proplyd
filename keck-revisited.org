@@ -4012,6 +4012,9 @@ WARNING: Overwriting existing file 'Stamps/p85-O_I_5577-stamp-nc_model_stack.fit
 + The proplyd component is only marginally broader than the sky line
 
 *** [Fe II] lines
+:PROPERTIES:
+:ID:       4F674E2D-0B0C-4584-9333-40C6131BD3F2
+:END:
 :LOGBOOK:
 CLOCK: [2013-05-24 Fri 18:10]--[2013-05-24 Fri 18:27] =>  0:17
 CLOCK: [2013-05-24 Fri 11:01]--[2013-05-24 Fri 11:35] =>  0:34
@@ -4604,7 +4607,7 @@ xpaset -p ds9 frame 1
 #+RESULTS: inspect-nebular-fit
 
 
-**** Other weaker [Si III] lines: 5041, 5056, 5958, 5979
+**** Other weaker [Si II] lines: 5041, 5056, 5958, 5979
 
 #+BEGIN_SRC sh
 python hires-extract/fit-nebula.py p85-Si_II_5979 --min-fraction 0.05 --ylo -6.5 -3  --yhi 3 6.5 --ncomp 3 --compA 100.0 1.0 5.0 --compB 100.0 13.0 4.0 --compC 100.0 25.0 3.0 --linear-components ABC --constant-intensity-components ABC --use-full-covariance
