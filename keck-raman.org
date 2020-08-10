@@ -582,7 +582,7 @@ Actually, I have now restricted to rows 600 and above, and maybe PERCENTILE=20 i
       espec = groupspec[emfit_islice]
       ewavs = groupwavs[emfit_islice]
 
-      # Fit to the absorption line
+      # Fit to the emission line
       ge_init = Gaussian1D(amplitude=0.5, mean=6666.80, stddev=0.2)
       ge = fitter(g_init, ewavs, espec - 1.0)
     
@@ -652,27 +652,118 @@ Actually, I have now restricted to rows 600 and above, and maybe PERCENTILE=20 i
 
 [[file:order51-absorption-by-group.pdf]]
 
-Fit parameters are n JSON file [[file:order51-absorption-by-group.json]]
+Fit parameters are in JSON file [[file:order51-absorption-by-group.json]]
 
-#+begin_src python :return data 
+#+begin_src python :results output verbatim
   import pandas as pd
 
-  unwanted = ["slits", "abs covariance", "em covariance"]
+  unwanted = ["abs covariance", "em covariance"]
   data = pd.read_json(
       open("order51-absorption-by-group.json"),
       orient="index").drop(unwanted, axis=1)
 
-  data = data["em param"]
+  pd.options.display.max_columns = 999
+  print(data)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+     abs S/N                                          abs param  \
+A  17.723251  [0.05016141318841601, 6663.783335487734, 0.878...   
+B   9.941250  [0.039456621365574006, 6663.517773389306, 0.57...   
+C   5.816141  [0.030299737728433, 6663.577507819489, 0.45914...   
+D   3.405397  [0.022207675219421002, 6663.93805280964, 0.435...   
+E   2.565872  [0.010938192305992, 6667.0922716873465, 1.9352...   
+
+                                       abs param err     em S/N  \
+A  [0.002830260265898, 0.057241517973872, 0.05731...  36.404218   
+B  [0.003968979731347, 0.067117760268056, 0.06712...  36.926180   
+C  [0.005209594490541001, 0.091065155820683, 0.09...  29.429739   
+D  [0.0065213177527070005, 0.14749407374279802, 0...  33.441223   
+E  [0.004262953812147001, 0.885626032509073, 1.05...  22.866480   
+
+                                            em param  \
+A  [0.747931551056437, 6666.809368423656, 0.09191...   
+B  [0.709407612849799, 6666.859796340884, 0.09369...   
+C  [0.597108717530763, 6666.865311996149, 0.09887...   
+D  [0.45617625263159406, 6666.839326830889, 0.098...   
+E  [0.293704791314265, 6666.8793603183585, 0.0855...   
+
+                                        em param err                 slits  
+A  [0.020545189497093, 0.0029202529912100003, 0.0...  [p79, p80, p81, p82]  
+B  [0.019211508123343, 0.002918389242405, 0.00291...  [j65, j66, j67, j68]  
+C  [0.020289296826698, 0.0038673323191790003, 0.0...       [j69, j70, j71]  
+D  [0.013641135493963001, 0.0033885298854100005, ...    [jw72, jw73, jw74]  
+E  [0.012844337826434, 0.004316789005892, 0.00432...          [je75, je76]  
+#+end_example
+
+
++ Make a table of the fits in velocity space
+  + Use 
+
+#+begin_src python :return tab
+  from pathlib import Path
+  import json
+  import numpy as np
+  import pandas as pd
+
+  data = json.load(Path("order51-absorption-by-group.json").open())
+
+  tab = [
+      ["Group", "A_ab", "V_ab", "W_ab", "A_em", "V_em", "W_em"],
+      None,
+  ]
+
+  light_speed = 2.99792458e5 
+  wav0_em = 6666.80
+  wav0_ab = 6663.7473
+  stretch = 6.3999329
+  FWHM = 2*np.sqrt(2*np.log(2.0))
+
+  def to_vel(params, wav0, stretch):
+      A, wav, sig = params
+      V = light_speed * (wav - wav0) / wav0 / stretch
+      W = FWHM * light_speed * sig / wav0 / stretch
+      return A, V, W
+
+  for group, gdata in data.items():
+      A_ab, V_ab, W_ab = to_vel(gdata["abs param"], wav0_ab, stretch)
+      A_ab_, V_ab_, W_ab_ = to_vel(
+          np.array(gdata["abs param"]) + np.array(gdata["abs param err"]),
+          wav0_ab,
+          stretch
+      )
+      A_em, V_em, W_em = to_vel(gdata["em param"], wav0_em, 1.0)
+      A_em_, V_em_, W_em_ = to_vel(
+          np.array(gdata["em param"]) + np.array(gdata["em param err"]),
+          wav0_em,
+          1.0
+      )
+      row = [group] + [
+          f"{x:.3f} +/- {abs(x_ - x):.3f}"
+          for x, x_ in [
+                  [A_ab, A_ab_],
+                  [V_ab, V_ab_],
+                  [W_ab, W_ab_],
+                  [A_em, A_em_],
+                  [V_em, V_em_],
+                  [W_em, W_em_]
+          ]
+      ]
+      tab.append(row)
+
 
 #+end_src
 
 #+RESULTS:
-: A    [0.747931551056437, 6666.809368423656, 0.09191...
-: B    [0.709407612849799, 6666.859796340884, 0.09369...
-: C    [0.597108717530763, 6666.865311996149, 0.09887...
-: D    [0.45617625263159406, 6666.839326830889, 0.098...
-: E    [0.293704791314265, 6666.8793603183585, 0.0855...
-: Name: em param, dtype: object
+| Group | A_ab             | V_ab              | W_ab               | A_em             | V_em             | W_em              |
+|-------+-----------------+------------------+-------------------+-----------------+-----------------+------------------|
+| A     | 0.050 +/- 0.003 | 0.253 +/- 0.402  | 14.546 +/- 0.949  | 0.748 +/- 0.021 | 0.421 +/- 0.131 | 9.733 +/- 0.309  |
+| B     | 0.039 +/- 0.004 | -1.613 +/- 0.472 | 9.576 +/- 1.111   | 0.709 +/- 0.019 | 2.689 +/- 0.131 | 9.921 +/- 0.309  |
+| C     | 0.030 +/- 0.005 | -1.194 +/- 0.640 | 7.600 +/- 1.508   | 0.597 +/- 0.020 | 2.937 +/- 0.174 | 10.470 +/- 0.410 |
+| D     | 0.022 +/- 0.007 | 1.341 +/- 1.037  | 7.201 +/- 2.441   | 0.456 +/- 0.014 | 1.768 +/- 0.152 | 10.378 +/- 0.359 |
+| E     | 0.011 +/- 0.004 | 23.514 +/- 6.226 | 32.035 +/- 17.455 | 0.294 +/- 0.013 | 3.569 +/- 0.194 | 9.061 +/- 0.458  |
+
 
 *** Velocity frames for emitted and scattered lines
 + From the 12CO and 13CO maps, the velocity is consistent for the Orion S region
