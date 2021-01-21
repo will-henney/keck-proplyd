@@ -8,7 +8,7 @@ import seaborn as sns
 
 
 slitgroups = {
-    "A": ["p79", "p80", "p81", "p82"],
+"A": ["p79", "p80", "p81", "p82"],
     "B": ["j65", "j66", "j67", "j68"],
     "C": ["j69", "j70", "j71"],
     "D": ["jw72", "jw73", "jw74"],
@@ -29,7 +29,7 @@ absfit_islices = slice(225, 358), slice(382, 410)
 emfit_islice = slice(358, 382)
 
 # Heliocentric velocity of OMC
-vel_omc = +9.0 + 19.1
+vel_omc = +9.0 + 17.16
 
 # Heliocentric correction
 helio_topo_correction = {
@@ -116,7 +116,7 @@ for group, slits in slitgroups.items():
     espec = groupspec[emfit_islice]
     ewavs = groupwavs[emfit_islice]
 
-    # Fit to the absorption line
+    # Fit to the emission line
     ge_init = Gaussian1D(amplitude=0.5, mean=6666.80, stddev=0.2)
     ge = fitter(g_init, ewavs, espec - 1.0)
 
@@ -130,7 +130,7 @@ for group, slits in slitgroups.items():
 
     # Add to plot
     ax.plot(groupwavs[islice], groupspec[islice] + offset, label=group, lw=0.7)
-    if abs_signal_to_noise > 5.0:
+    if abs_signal_to_noise > 3.0:
         ax.plot(groupwavs[islice],
                 1.0 - g(groupwavs[islice]) + ge(groupwavs[islice]) + offset,
                 label="_nolabel_", lw=0.7, color="k", zorder=-10)
@@ -163,7 +163,14 @@ ax.axvline(o1_wavs[2], 0.19, 0.65, color="k", lw=0.2)
 ax.annotate("$-20$", (o1_wavs[0], o1_y0), xytext=(4, -6), ha="right", **annot_kwds)
 ax.annotate("$0$", (o1_wavs[2], o1_y0), xytext=(0, -6), ha="center", **annot_kwds)
 ax.annotate("$20$ km/s", (o1_wavs[-1], o1_y0), xytext=(-4, -6), ha="left", **annot_kwds)
-ax.annotate("O Ⅰ ${}^{3}P_{0} \\to {}^{3}D_{1}$ 1028.1573 Å\nRaman-scattered Lyβ → Hα", (o1_wavs[2], o1_y0), xytext=(0, -16), ha="center", **annot_kwds)
+ax.annotate(
+    r"O Ⅰ $\mathrm{{}^{3}P_{0}}$—$\mathrm{{}^{3}D_{1}}$ 1028.1573 Å"
+    "\nRaman-scattered Lyβ → Hα",
+    (o1_wavs[2], o1_y0),
+    xytext=(0, -16),
+    ha="center",
+    **annot_kwds
+)
 
 # ax.legend(fontsize="x-small")
 ax.set(

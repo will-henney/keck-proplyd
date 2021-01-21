@@ -496,7 +496,7 @@ Actually, I have now restricted to rows 600 and above, and maybe PERCENTILE=20 i
   emfit_islice = slice(358, 382)
 
   # Heliocentric velocity of OMC
-  vel_omc = +9.0 + 19.1
+  vel_omc = +9.0 + 18.05
 
   # Heliocentric correction
   helio_topo_correction = {
@@ -774,11 +774,11 @@ E  [0.012844337826434, 0.004316789005892, 0.00432...          [je75, je76]
 #+RESULTS:
 | Group | A_ab             | V_ab              | W_ab               | A_em             | V_em             | W_em             |
 |-------+-----------------+------------------+-------------------+-----------------+-----------------+-----------------|
-| A     | 0.050 +/- 0.003 | 0.253 +/- 0.402  | 14.516 +/- 0.951  | 0.748 +/- 0.021 | 0.421 +/- 0.131 | 7.664 +/- 0.389 |
-| B     | 0.039 +/- 0.004 | -1.613 +/- 0.472 | 9.530 +/- 1.116   | 0.709 +/- 0.019 | 2.689 +/- 0.131 | 7.901 +/- 0.385 |
-| C     | 0.030 +/- 0.005 | -1.194 +/- 0.640 | 7.542 +/- 1.517   | 0.597 +/- 0.020 | 2.937 +/- 0.174 | 8.581 +/- 0.496 |
-| D     | 0.022 +/- 0.007 | 1.341 +/- 1.037  | 7.140 +/- 2.456   | 0.456 +/- 0.014 | 1.768 +/- 0.152 | 8.468 +/- 0.436 |
-| E     | 0.011 +/- 0.004 | 23.514 +/- 6.226 | 32.022 +/- 17.460 | 0.294 +/- 0.013 | 3.569 +/- 0.194 | 6.790 +/- 0.600 |
+| A     | 0.050 +/- 0.003 | 0.417 +/- 0.402  | 14.516 +/- 0.951  | 0.748 +/- 0.021 | 1.471 +/- 0.131 | 7.664 +/- 0.389 |
+| B     | 0.039 +/- 0.004 | -1.449 +/- 0.472 | 9.525 +/- 1.117   | 0.709 +/- 0.019 | 3.739 +/- 0.131 | 7.903 +/- 0.385 |
+| C     | 0.030 +/- 0.005 | -1.030 +/- 0.640 | 7.540 +/- 1.518   | 0.597 +/- 0.020 | 3.987 +/- 0.174 | 8.582 +/- 0.496 |
+| D     | 0.022 +/- 0.007 | 1.506 +/- 1.037  | 7.140 +/- 2.458   | 0.456 +/- 0.014 | 2.819 +/- 0.152 | 8.467 +/- 0.436 |
+| E     | 0.011 +/- 0.004 | 23.675 +/- 6.226 | 32.018 +/- 17.461 | 0.294 +/- 0.013 | 4.620 +/- 0.194 | 6.788 +/- 0.599 |
 
 
 + Corrections o the line widths
@@ -802,11 +802,16 @@ E  [0.012844337826434, 0.004316789005892, 0.00432...          [je75, je76]
 + Thermal width of Raman-scattered lines
   + Will have contribution from O I and H I
   + Assume O I width is same as [N I] - 6 km/s
-    + Subtract in quadrature to give:      + A: sqrt(14.5**2 - 6**2) = 13.2 km/s
+    + Subtract in quadrature to give:
+      + A: sqrt(14.5**2 - 6**2) = 13.2 km/s
       + D: sqrt(7.2**2 - 6**2) = 4 km/s
+      + C (with + 1 sigma): sqrt(9.1**2 - 6**2) = 6.8 km/s
+      + C (mean): sqrt(7.6**2 - 6**2) = 4.7 km/s
   + H I line width should be 21.4 sqrt(T/1e4)
     + A: T < 1e4 (13.2/21.4)**2 < 3800 K
     + D: T < 1e4 (4/21.4)**2 < 350 K
+    + C (with + 1 sigma): T < 1e4 (6.8/21.4)**2 < 1010 K
+    + C (mean): T < 1e4 (4.7/21.4)**2 < 480 K
 
 *** Velocity frames for emitted and scattered lines
 + From the 12CO and 13CO the velocity is consistent for the Orion S region
@@ -844,6 +849,9 @@ E  [0.012844337826434, 0.004316789005892, 0.00432...          [je75, je76]
   + This means earth is moving towards object
   + So, we subtract -4 from the topocentric velocities to get heliocentric
 **** Find heliocentric correction more precisely
+:PROPERTIES:
+:ID:       603E5AFD-B542-46CB-9C1F-04ED40D27699
+:END:
 + This is modified from a similar program I wrote for the Turtle project
   + [[file:~/Dropbox/Teresa-Turtle/doc/teresa-turtle.org][file:~/Dropbox/Teresa-Turtle/doc/teresa-turtle.org]]
 #+BEGIN_SRC python :return outtab :tangle keck-heliocorr-info.py
@@ -967,3 +975,138 @@ E  [0.012844337826434, 0.004316789005892, 0.00432...          [je75, je76]
 |------------+------------+-----------+-------------+-------------+-------------+------+-------|
 |            |            |           |             |             |             | 4.01 | -3.39 |
 #+TBLFM: @3$7..@3$8=vmean(@I..@II);f2
+**** Check the conversion from heliocentric to LSR
+#+begin_src python :return TAB
+  from astropy.wcs import WCS
+  import astropy.coordinates as coord
+  from astropy.time import Time
+  import astropy.units as u
+  from astropy.io import fits
+  import numpy as np
+
+  TAB = [
+      ["Reference", "(U, V, W)", "(l, b) Orion", "V(LSR) - V(BARY)"],
+      None,
+  ]
+
+  fn = "Keck1/p71.fits"
+  hdr = fits.open(fn)[0].header
+  w = WCS(hdr)
+  ra, dec, st = hdr.get("RA"), hdr.get("DEC"), hdr.get('ST')
+  time = Time(f"{w.wcs.dateobs} {st}")
+  uvw_data = [
+      [[11.1, 5.25, 7.25], "Dehnen:1998a"],
+      [[11.1, 12.24, 7.25], "Schonrich:2010a"],
+      [[10.0, 11.0, 7.0], "Bland-Hawthorn:2016a"],
+      [[9.0, 12.0, 7.0], "Sol Pec Motion wrt Circ - Delhaye:1965a"],
+      [[10.4, 14.8, 7.3], "Standard Sol Motion - Delhaye:1965a"],
+      [[9.0, 11.0, 6.0], "Basic Sol Motion - Delhaye:1965a"],
+      [[10.29, 15.26, 7.81], "LSRK Greisen:2006a"],
+      [[9.05, 12.02, 7.02], "LSRD Creisen:2006a"],
+      [[10.27, 15.32, 7.74], "Conventional Gordon:1976a"],
+  ]
+  for uvw, label in uvw_data:
+      sc = coord.SkyCoord(
+          ra=ra, dec=dec, unit=(u.hourangle, u.deg),
+          obstime=time,
+          distance=400.0*u.pc,
+          radial_velocity=0.0 * u.km / u.s,
+          pm_ra_cosdec=0.0*u.mas/u.yr,
+          pm_dec=0.0*u.mas/u.yr,
+          v_bary=coord.CartesianDifferential(d_x=uvw, unit=u.km/u.s),
+      )
+      vlsr = str(np.round(sc.lsr.radial_velocity, 2))
+      # Check by hand using Galactic coordinates
+      lll, bbb = sc.galactic.l.radian, sc.galactic.b.radian
+      l_dg, b_dg = sc.galactic.l.deg, sc.galactic.b.deg 
+      U, V, W = uvw
+      vlsr2 = U*np.cos(lll)*np.cos(bbb) + V*np.sin(lll)*np.cos(bbb) + W*np.sin(bbb)
+      vlsr2 = str(np.round(vlsr2, 2))
+      galactic = f"({l_dg:.2f}, {b_dg:.2f})"
+      TAB.append([label, uvw, galactic, vlsr])
+
+#+end_src
+
+#+RESULTS:
+| Reference                               | (U, V, W)          | (l, b) Orion     | V(LSR) - V(BARY) |
+|-----------------------------------------+--------------------+------------------+------------------|
+| Dehnen:1998a                            | (11.1 5.25 7.25)   | (209.02, -19.38) | -13.97 km / s    |
+| Schonrich:2010a                         | (11.1 12.24 7.25)  | (209.02, -19.38) | -17.16 km / s    |
+| Bland-Hawthorn:2016a                    | (10.0 11.0 7.0)    | (209.02, -19.38) | -15.61 km / s    |
+| Sol Pec Motion wrt Circ - Delhaye:1965a | (9.0 12.0 7.0)     | (209.02, -19.38) | -15.24 km / s    |
+| Standard Sol Motion - Delhaye:1965a     | (10.4 14.8 7.3)    | (209.02, -19.38) | -17.77 km / s    |
+| Basic Sol Motion - Delhaye:1965a        | (9.0 11.0 6.0)     | (209.02, -19.38) | -14.45 km / s    |
+| LSRK Greisen:2006a                      | (10.29 15.26 7.81) | (209.02, -19.38) | -18.06 km / s    |
+| LSRD Greisen:2006a                      | (9.05 12.02 7.02)  | (209.02, -19.38) | -15.3 km / s     |
+| Conventional Gordon:1976a               | (10.27 15.32 7.74) | (209.02, -19.38) | -18.05 km / s    |
+
+
++ Finally, I have found a set of values that reproduces the 18.1 km/s value that Bob quotes
+  + This is the /kinematic LSR/ that comes from Table 12 of the Greisen:2006a paper on the FITS standards for spectral coordinates
+  + This references Delhaye:1965a and Gordon:1976a but the LSRK seems to come from the latter. It is the *Standard Solar Motion*, which Gordon:1976a defines as
+    : The conventional reference frame used for galactic studies is essentially
+    : that of standard solar motion. The convention of Local Standard of Rest	    
+    : (LSR) assumes the sun to move at the rounded velocity of 20.0 km/sec toward  
+    : 18h RA and 30° DEC (1900.0).
+  + /Note that Gordon:1976a gives no citation for this!/
+  + And what does he mean by "essentially"? I guess it is that the conventional frame is similar to the Standard Solar Motion, but will not be exactly equal to it because it is *defined* to be nice round numbers (in 1900 equatorial coordinates).
+  + The values in the table are not very precise, so I recalculate (U, V, W) below.  This gives slightly different values, but the projected value for Orion is still -18.1 km/s
++ Here are the different references for the solar peculiar velocity
+  + Delhaye:1965a gives several different values
+  + 
+  + is what is called ~VLSRK~ in the CASA documentation
+  + https://casa.nrao.edu/casadocs/casa-5.0.0/reference-material/spectral-frames
++ From the Astropy docs, this is using Schoenrich 2010, which is:
+  : (U, V, W) = (11.1, 12.24, 7.25) km/s
++ The difference with earlier results is in V, which is in the direction of Galactic rotation.
+  + Dehnen & Binney (1998) had V = 5.25 ± 0.62 instead of 12.24 ± 0.47.
+  + If I use this value (uncomment second ~v_bary~ line in code) then I get -14 km/s
+    : -13.965011826045325 km / s
+***** The Conventional LSR reference frame from Gordon:1976a
++ M. A. Gordon. Radial-velocity corrections for earth motion. Methods of Experimental Physics, 12:277–283, January 1976.
+  + https://ui.adsabs.harvard.edu/abs/1976MExP...12..277G
++ Velocity magnitude of 20 km/s towards (RA, DEC) = (18h, 30 deg) epoch 1900.0
+
+#+begin_src python :results output verbatim
+  import astropy.coordinates as coord
+  import astropy.units as u
+  import numpy as np
+
+  c = coord.SkyCoord(
+      "18:00:00 +30:00:00",
+      unit=(u.hourangle, u.deg),
+      frame=coord.PrecessedGeocentric(equinox="J1900.0", obstime="J1900.0"),
+  )
+
+  print(c)
+  print(c.icrs)
+  print(c.galactic)
+
+  lll, bbb = c.galactic.l.radian, c.galactic.b.radian
+
+  U = 20*np.cos(lll)*np.cos(bbb)
+  V = 20*np.sin(lll)*np.cos(bbb)
+  W = 20*np.sin(bbb)
+
+  print(f"(U, V, W) = ({U:.2f}, {V:.2f}, {W:.2f})")
+#+end_src
+
+#+RESULTS:
+: <SkyCoord (PrecessedGeocentric: equinox=J1900.000, obstime=J1900.000, obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s): (ra, dec) in deg
+:     (270., 30.)>
+: <SkyCoord (ICRS): (ra, dec) in deg
+:     (270.96585118, 30.00550741)>
+: <SkyCoord (Galactic): (l, b) in deg
+:     (56.16028633, 22.75985025)>
+: (U, V, W) = (10.27, 15.32, 7.74)
+
+So this is very slightly different from the Greisen table. 
+
+***** Values from Table 12 of Greisen:2006a
++ These give the VLSRK and VLSRD values but with a magnitude and Galactic direction
+| Frame | Vsun |  l |  b |     U |     V |    W |
+|-------+------+----+----+-------+-------+------|
+| LSRK  | 20.0 | 56 | 23 | 10.29 | 15.26 | 7.81 |
+| LSRD  | 16.6 | 53 | 25 |  9.05 | 12.02 | 7.02 |
+#+TBLFM: $5=$2 cos($3) cos($4);f2::$6=$2 sin($3) cos($4);f2::$7=$2 sin($4);f2
++ Note, however that the values in that Table are meant to be *illustrative* only, rather than precise. 
