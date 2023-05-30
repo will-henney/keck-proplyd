@@ -270,7 +270,7 @@ First we graph the temperature dependence, without including the collisional ter
   import matplotlib.pyplot as plt
   <<porter-eq-A1>>  
   <<tab4-to-datadict>>
-  wavlist = [4922, 5016, 5048, 6678, 4388, 4438]
+  wavlist = [4922, 5016, 5048, 6678, 4388, 4438, 4472]
   Tgrid = np.linspace(5000.0, 15000.0)
   em5876 = porter_equation_A1(Tgrid, datadict[5876])
   i0 = np.argmax(Tgrid[Tgrid < 1.e4]) 
